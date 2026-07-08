@@ -4,6 +4,8 @@ import { FormEvent, useState } from "react";
 
 type MainSection = "admin" | "serviceClientele";
 
+type ServiceClienteleSection = "schoolRegistration" | "universityRegistration" | "schoolSubscription";
+
 type AdminSection =
     | "overview"
     | "clients"
@@ -132,6 +134,24 @@ const whyKpi = [
     "Aider le gérant à décider plus vite",
 ];
 
+const customerServices = [
+    {
+        key: "schoolRegistration" as const,
+        title: "Inscription scolaire",
+        description: "Créer le dossier d’inscription pour un établissement scolaire.",
+    },
+    {
+        key: "universityRegistration" as const,
+        title: "Inscription universitaire",
+        description: "Gérer les inscriptions universitaires et les informations académiques.",
+    },
+    {
+        key: "schoolSubscription" as const,
+        title: "Abonnement scolaire",
+        description: "Suivre l’abonnement scolaire au transport et sa période de validité.",
+    },
+];
+
 const moduleConfigs: Record<Exclude<AdminSection, "overview">, ModuleConfig> = {
     clients: {
         title: "Gestion des clients",
@@ -247,6 +267,7 @@ export default function Home() {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [activeSection, setActiveSection] = useState<MainSection>("admin");
     const [activeAdminSection, setActiveAdminSection] = useState<AdminSection>("overview");
+    const [activeCustomerService, setActiveCustomerService] = useState<ServiceClienteleSection>("schoolRegistration");
     const [username, setUsername] = useState("admin");
     const [password, setPassword] = useState("admin123");
 
@@ -264,28 +285,53 @@ export default function Home() {
         setIsAuthenticated(false);
         setActiveSection("admin");
         setActiveAdminSection("overview");
+        setActiveCustomerService("schoolRegistration");
     }
 
     function renderCustomerServiceWorkspace() {
+        const selectedService = customerServices.find((service) => service.key === activeCustomerService) ?? customerServices[0];
+
         return (
             <section className="grid gap-6 xl:grid-cols-[0.95fr_1.05fr]">
                 <article className="rounded-[2rem] border border-white/10 bg-[var(--surface)] p-5 shadow-xl shadow-slate-950/25 sm:p-6">
                     <div className="flex items-center justify-between gap-4">
                         <div>
                             <p className="text-sm text-slate-400">Service clientèle</p>
-                            <h3 className="mt-1 text-2xl font-semibold text-white">Nouvelle demande</h3>
+                            <h3 className="mt-1 text-2xl font-semibold text-white">{selectedService.title}</h3>
                         </div>
                         <span className="rounded-full bg-cyan-300/10 px-3 py-1 text-xs text-cyan-200">Support</span>
                     </div>
 
                     <div className="mt-5 grid gap-3">
-                        {[
-                            "Nom du client",
-                            "Téléphone",
-                            "Type de demande",
-                            "Priorité",
-                            "Sujet",
-                        ].map((field) => (
+                        {customerServices.map((service) => {
+                            const isActive = activeCustomerService === service.key;
+
+                            return (
+                                <button
+                                    key={service.key}
+                                    onClick={() => setActiveCustomerService(service.key)}
+                                    className={`rounded-2xl border px-4 py-4 text-left transition ${isActive
+                                        ? "border-cyan-300/30 bg-cyan-400 text-slate-950"
+                                        : "border-white/10 bg-white/5 text-slate-200 hover:bg-white/10"
+                                        }`}
+                                >
+                                    <div className="text-sm font-semibold">{service.title}</div>
+                                    <div className={`mt-1 text-xs leading-5 ${isActive ? "text-slate-950/70" : "text-slate-400"}`}>
+                                        {service.description}
+                                    </div>
+                                </button>
+                            );
+                        })}
+                    </div>
+
+                    <div className="mt-5 grid gap-3">
+                        {(
+                            activeCustomerService === "schoolRegistration"
+                                ? ["Nom du client", "Téléphone", "Établissement", "Niveau", "Classe", "Année scolaire", "Montant"]
+                                : activeCustomerService === "universityRegistration"
+                                    ? ["Nom du client", "Téléphone", "Université", "Faculté", "Spécialité", "Année universitaire", "Montant"]
+                                    : ["Nom du client", "Téléphone", "Compagnie", "Ligne", "Date début", "Date fin", "Montant"]
+                        ).map((field) => (
                             <label key={field} className="grid gap-2 text-sm text-slate-300">
                                 <span>{field}</span>
                                 <input
@@ -296,28 +342,28 @@ export default function Home() {
                             </label>
                         ))}
                         <label className="grid gap-2 text-sm text-slate-300">
-                            <span>Description</span>
+                            <span>Observations</span>
                             <textarea
                                 rows={5}
                                 className="rounded-2xl border border-white/10 bg-slate-950/40 px-4 py-3 text-slate-100 outline-none placeholder:text-slate-500 focus:border-cyan-300/50"
-                                placeholder="Décrire le besoin du client"
+                                placeholder="Ajouter une note ou une précision"
                             />
                         </label>
 
                         <button className="rounded-2xl bg-cyan-400 px-4 py-3 font-semibold text-slate-950 transition hover:bg-cyan-300">
-                            Enregistrer la demande
+                            Enregistrer {selectedService.title.toLowerCase()}
                         </button>
                     </div>
                 </article>
 
                 <article className="rounded-[2rem] border border-white/10 bg-[var(--surface)] p-5 shadow-xl shadow-slate-950/25 sm:p-6">
                     <p className="text-sm text-slate-400">Demandes en cours</p>
-                    <h3 className="mt-1 text-2xl font-semibold text-white">Suivi du support</h3>
+                    <h3 className="mt-1 text-2xl font-semibold text-white">Suivi des dossiers</h3>
                     <div className="mt-5 space-y-4">
                         {[
-                            ["Demande 001", "Retard de commande", "En cours"],
-                            ["Demande 002", "Retour de produit", "Résolu"],
-                            ["Demande 003", "Question de facturation", "En attente"],
+                            ["Dossier 001", "Inscription scolaire", "En cours"],
+                            ["Dossier 002", "Inscription universitaire", "Résolu"],
+                            ["Dossier 003", "Abonnement scolaire", "En attente"],
                         ].map((row) => (
                             <div key={row[0]} className="rounded-2xl border border-white/10 bg-white/5 p-4">
                                 <div className="flex items-center justify-between gap-4">
