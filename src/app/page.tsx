@@ -2,7 +2,7 @@
 
 import { FormEvent, useState } from "react";
 
-type MainSection = "admin" | "analytics";
+type MainSection = "admin" | "serviceClientele";
 
 type AdminSection =
     | "overview"
@@ -39,9 +39,9 @@ const mainSections: Array<{ key: MainSection; label: string; description: string
         description: "Accéder aux modules de gestion métier",
     },
     {
-        key: "analytics",
-        label: "Analyse",
-        description: "Consulter les KPI, graphiques et alertes",
+        key: "serviceClientele",
+        label: "Service clientèle",
+        description: "Gérer l’assistance, les réclamations et les demandes",
     },
 ];
 
@@ -123,15 +123,6 @@ const topProducts = [
     { name: "Stylo bleu", value: 81 },
     { name: "Livre Math 3e", value: 68 },
     { name: "Compas", value: 47 },
-];
-
-const analyticsHighlights = [
-    "CA du jour / mois",
-    "Produits en rupture",
-    "Top livres / fournitures",
-    "Évolution mensuelle du CA",
-    "Paiements par mode",
-    "Alertes de stock minimum",
 ];
 
 const whyKpi = [
@@ -275,6 +266,77 @@ export default function Home() {
         setActiveAdminSection("overview");
     }
 
+    function renderCustomerServiceWorkspace() {
+        return (
+            <section className="grid gap-6 xl:grid-cols-[0.95fr_1.05fr]">
+                <article className="rounded-[2rem] border border-white/10 bg-[var(--surface)] p-5 shadow-xl shadow-slate-950/25 sm:p-6">
+                    <div className="flex items-center justify-between gap-4">
+                        <div>
+                            <p className="text-sm text-slate-400">Service clientèle</p>
+                            <h3 className="mt-1 text-2xl font-semibold text-white">Nouvelle demande</h3>
+                        </div>
+                        <span className="rounded-full bg-cyan-300/10 px-3 py-1 text-xs text-cyan-200">Support</span>
+                    </div>
+
+                    <div className="mt-5 grid gap-3">
+                        {[
+                            "Nom du client",
+                            "Téléphone",
+                            "Type de demande",
+                            "Priorité",
+                            "Sujet",
+                        ].map((field) => (
+                            <label key={field} className="grid gap-2 text-sm text-slate-300">
+                                <span>{field}</span>
+                                <input
+                                    type="text"
+                                    className="rounded-2xl border border-white/10 bg-slate-950/40 px-4 py-3 text-slate-100 outline-none placeholder:text-slate-500 focus:border-cyan-300/50"
+                                    placeholder={`Saisir ${field.toLowerCase()}`}
+                                />
+                            </label>
+                        ))}
+                        <label className="grid gap-2 text-sm text-slate-300">
+                            <span>Description</span>
+                            <textarea
+                                rows={5}
+                                className="rounded-2xl border border-white/10 bg-slate-950/40 px-4 py-3 text-slate-100 outline-none placeholder:text-slate-500 focus:border-cyan-300/50"
+                                placeholder="Décrire le besoin du client"
+                            />
+                        </label>
+
+                        <button className="rounded-2xl bg-cyan-400 px-4 py-3 font-semibold text-slate-950 transition hover:bg-cyan-300">
+                            Enregistrer la demande
+                        </button>
+                    </div>
+                </article>
+
+                <article className="rounded-[2rem] border border-white/10 bg-[var(--surface)] p-5 shadow-xl shadow-slate-950/25 sm:p-6">
+                    <p className="text-sm text-slate-400">Demandes en cours</p>
+                    <h3 className="mt-1 text-2xl font-semibold text-white">Suivi du support</h3>
+                    <div className="mt-5 space-y-4">
+                        {[
+                            ["Demande 001", "Retard de commande", "En cours"],
+                            ["Demande 002", "Retour de produit", "Résolu"],
+                            ["Demande 003", "Question de facturation", "En attente"],
+                        ].map((row) => (
+                            <div key={row[0]} className="rounded-2xl border border-white/10 bg-white/5 p-4">
+                                <div className="flex items-center justify-between gap-4">
+                                    <div>
+                                        <div className="text-sm font-semibold text-white">{row[0]}</div>
+                                        <div className="mt-1 text-sm text-slate-300">{row[1]}</div>
+                                    </div>
+                                    <span className="rounded-full border border-white/10 bg-slate-950/40 px-3 py-1 text-xs text-slate-200">
+                                        {row[2]}
+                                    </span>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </article>
+            </section>
+        );
+    }
+
     function renderModulePanel(section: Exclude<AdminSection, "overview">) {
         const config = moduleConfigs[section];
 
@@ -409,102 +471,7 @@ export default function Home() {
         }
 
         if (activeAdminSection === "clients") {
-            return (
-                <section className="grid gap-6 xl:grid-cols-[0.92fr_1.08fr]">
-                    <article className="rounded-[2rem] border border-white/10 bg-[var(--surface)] p-5 shadow-xl shadow-slate-950/25 sm:p-6">
-                        <div className="flex items-center justify-between gap-4">
-                            <div>
-                                <p className="text-sm text-slate-400">Clients</p>
-                                <h2 className="mt-1 text-2xl font-semibold text-white">Ajouter un client</h2>
-                            </div>
-                            <span className="rounded-full bg-cyan-300/10 px-3 py-1 text-xs text-cyan-200">Interface client</span>
-                        </div>
-
-                        <div className="mt-5 grid gap-3">
-                            {[
-                                "Nom",
-                                "Prénom",
-                                "Téléphone",
-                                "Email",
-                                "Adresse",
-                                "CIN",
-                                "Date de naissance",
-                                "Sexe",
-                            ].map((field) => (
-                                <label key={field} className="grid gap-2 text-sm text-slate-300">
-                                    <span>{field}</span>
-                                    <input
-                                        type="text"
-                                        className="rounded-2xl border border-white/10 bg-slate-950/40 px-4 py-3 text-slate-100 outline-none placeholder:text-slate-500 focus:border-cyan-300/50"
-                                        placeholder={`Saisir ${field.toLowerCase()}`}
-                                    />
-                                </label>
-                            ))}
-                            <label className="grid gap-2 text-sm text-slate-300">
-                                <span>Observations</span>
-                                <textarea
-                                    rows={4}
-                                    className="rounded-2xl border border-white/10 bg-slate-950/40 px-4 py-3 text-slate-100 outline-none placeholder:text-slate-500 focus:border-cyan-300/50"
-                                    placeholder="Notes sur le client"
-                                />
-                            </label>
-
-                            <div className="grid gap-3 sm:grid-cols-2">
-                                <button className="rounded-2xl bg-cyan-400 px-4 py-3 font-semibold text-slate-950 transition hover:bg-cyan-300">
-                                    Enregistrer le client
-                                </button>
-                                <button className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 font-semibold text-slate-200 transition hover:bg-white/10">
-                                    Réinitialiser
-                                </button>
-                            </div>
-                        </div>
-                    </article>
-
-                    <article className="rounded-[2rem] border border-white/10 bg-[var(--surface)] p-5 shadow-xl shadow-slate-950/25 sm:p-6">
-                        <div className="flex items-center justify-between gap-4">
-                            <div>
-                                <p className="text-sm text-slate-400">Base clients</p>
-                                <h2 className="mt-1 text-2xl font-semibold text-white">Liste et recherche</h2>
-                            </div>
-                            <span className="rounded-full bg-white/5 px-3 py-1 text-xs text-slate-200">Recherche</span>
-                        </div>
-
-                        <div className="mt-5 flex gap-3">
-                            <input
-                                type="search"
-                                className="w-full rounded-2xl border border-white/10 bg-slate-950/40 px-4 py-3 text-slate-100 outline-none placeholder:text-slate-500 focus:border-cyan-300/50"
-                                placeholder="Rechercher par nom, téléphone ou email"
-                            />
-                            <button className="rounded-2xl bg-emerald-400 px-4 py-3 font-semibold text-slate-950 transition hover:bg-emerald-300">
-                                Rechercher
-                            </button>
-                        </div>
-
-                        <div className="mt-5 overflow-hidden rounded-[1.5rem] border border-white/10">
-                            <div className="grid grid-cols-4 gap-3 bg-white/5 px-4 py-3 text-xs font-semibold uppercase tracking-[0.25em] text-slate-400">
-                                <span>Client</span>
-                                <span>Téléphone</span>
-                                <span>Email</span>
-                                <span>Action</span>
-                            </div>
-                            {[
-                                ["Amina Benali", "0612345678", "amina@mail.com"],
-                                ["Youssef Idrissi", "0698765432", "youssef@mail.com"],
-                                ["Sara El Amrani", "0622334455", "sara@mail.com"],
-                            ].map((row) => (
-                                <div key={row[0]} className="grid grid-cols-4 gap-3 border-t border-white/10 bg-slate-950/30 px-4 py-4 text-sm text-slate-200">
-                                    <span>{row[0]}</span>
-                                    <span>{row[1]}</span>
-                                    <span>{row[2]}</span>
-                                    <button className="justify-self-start rounded-full border border-cyan-300/20 bg-cyan-300/10 px-3 py-1 text-xs text-cyan-100">
-                                        Ouvrir
-                                    </button>
-                                </div>
-                            ))}
-                        </div>
-                    </article>
-                </section>
-            );
+            return renderModulePanel("clients");
         }
 
         return renderModulePanel(activeAdminSection);
@@ -731,110 +698,74 @@ export default function Home() {
                                                 </button>
                                             </article>
                                         </div>
+
+                                        <section className="mt-6 grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
+                                            <article className="rounded-[2rem] border border-white/10 bg-slate-950/35 p-5 shadow-xl shadow-slate-950/25 sm:p-6">
+                                                <div className="flex items-center justify-between gap-4">
+                                                    <div>
+                                                        <p className="text-sm text-slate-400">Analyse</p>
+                                                        <h3 className="mt-1 text-2xl font-semibold text-white">Évolution du chiffre d’affaires</h3>
+                                                    </div>
+                                                    <span className="rounded-full bg-cyan-300/10 px-3 py-1 text-xs text-cyan-200">Analyse</span>
+                                                </div>
+                                                <div className="mt-6 flex h-72 items-end gap-3 rounded-[1.5rem] border border-white/10 bg-slate-950/35 p-4">
+                                                    {monthlyChart.map((item) => (
+                                                        <div key={item.month} className="flex flex-1 flex-col items-center gap-2">
+                                                            <div className="flex w-full items-end justify-center">
+                                                                <div
+                                                                    className="w-full max-w-14 rounded-t-2xl bg-gradient-to-t from-amber-400 via-cyan-400 to-emerald-300 shadow-lg shadow-cyan-500/20"
+                                                                    style={{ height: `${item.value * 2}px` }}
+                                                                />
+                                                            </div>
+                                                            <span className="text-xs text-slate-400">{item.month}</span>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </article>
+
+                                            <article className="rounded-[2rem] border border-white/10 bg-slate-950/35 p-5 shadow-xl shadow-slate-950/25 sm:p-6">
+                                                <p className="text-sm text-slate-400">Top produits</p>
+                                                <h3 className="mt-1 text-2xl font-semibold text-white">Produits les plus vendus</h3>
+                                                <div className="mt-6 space-y-4">
+                                                    {topProducts.map((product) => (
+                                                        <div key={product.name} className="space-y-2 rounded-2xl border border-white/10 bg-slate-950/40 p-4">
+                                                            <div className="flex items-center justify-between gap-4 text-sm">
+                                                                <span className="text-slate-200">{product.name}</span>
+                                                                <span className="text-slate-400">{product.value}%</span>
+                                                            </div>
+                                                            <div className="h-3 rounded-full bg-white/5">
+                                                                <div
+                                                                    className="h-3 rounded-full bg-gradient-to-r from-amber-400 via-cyan-400 to-emerald-300"
+                                                                    style={{ width: `${product.value}%` }}
+                                                                />
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </article>
+                                        </section>
+
+                                        <section className="mt-6 rounded-[2rem] border border-white/10 bg-slate-950/35 p-5 shadow-xl shadow-slate-950/25 sm:p-6">
+                                            <p className="text-sm text-slate-400">Pourquoi les KPI ?</p>
+                                            <h3 className="mt-1 text-2xl font-semibold text-white">Les KPI donnent une lecture immédiate de la librairie</h3>
+                                            <p className="mt-3 max-w-4xl text-sm leading-6 text-slate-300">
+                                                Les indicateurs clés de performance servent à piloter l’activité en temps réel. Ils permettent de repérer les ventes, les ruptures, les produits performants et les zones qui nécessitent une action.
+                                            </p>
+                                            <div className="mt-5 grid gap-3 md:grid-cols-3">
+                                                {whyKpi.map((item) => (
+                                                    <div key={item} className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-slate-200">
+                                                        {item}
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </section>
                                     </>
                                 ) : (
                                     renderAdminWorkspace()
                                 )}
                             </>
                         ) : (
-                            <>
-                                <section className="grid gap-6 xl:grid-cols-[1.05fr_0.95fr]">
-                                    <article className="rounded-[2rem] border border-white/10 bg-slate-950/35 p-5 shadow-xl shadow-slate-950/25 sm:p-6">
-                                        <div className="flex items-center justify-between gap-4">
-                                            <div>
-                                                <p className="text-sm text-slate-400">Tableau de bord</p>
-                                                <h3 className="mt-1 text-2xl font-semibold text-white">Indicateurs clés de performance</h3>
-                                            </div>
-                                            <span className="rounded-full bg-rose-300/10 px-3 py-1 text-xs text-rose-200">KPI</span>
-                                        </div>
-
-                                        <div className="mt-5 grid gap-4 md:grid-cols-2">
-                                            {kpis.map((kpi) => (
-                                                <div key={kpi.label} className="rounded-3xl border border-white/10 bg-slate-950/40 p-5">
-                                                    <p className="text-sm text-slate-400">{kpi.label}</p>
-                                                    <div className="mt-3 flex items-end justify-between gap-3">
-                                                        <strong className="text-3xl font-semibold text-white">{kpi.value}</strong>
-                                                        <span className="rounded-full bg-white/5 px-3 py-1 text-xs text-emerald-200">{kpi.delta}</span>
-                                                    </div>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </article>
-
-                                    <article className="rounded-[2rem] border border-white/10 bg-slate-950/35 p-5 shadow-xl shadow-slate-950/25 sm:p-6">
-                                        <p className="text-sm text-slate-400">Situation de la librairie</p>
-                                        <h3 className="mt-1 text-2xl font-semibold text-white">Alertes et points de contrôle</h3>
-                                        <div className="mt-5 grid gap-3">
-                                            {analyticsHighlights.map((item) => (
-                                                <div key={item} className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-slate-200">
-                                                    {item}
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </article>
-                                </section>
-
-                                <section className="mt-6 grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
-                                    <article className="rounded-[2rem] border border-white/10 bg-slate-950/35 p-5 shadow-xl shadow-slate-950/25 sm:p-6">
-                                        <div className="flex items-center justify-between gap-4">
-                                            <div>
-                                                <p className="text-sm text-slate-400">Graphique mensuel</p>
-                                                <h3 className="mt-1 text-2xl font-semibold text-white">Évolution du chiffre d’affaires</h3>
-                                            </div>
-                                            <span className="rounded-full bg-cyan-300/10 px-3 py-1 text-xs text-cyan-200">Analyse</span>
-                                        </div>
-                                        <div className="mt-6 flex h-72 items-end gap-3 rounded-[1.5rem] border border-white/10 bg-slate-950/35 p-4">
-                                            {monthlyChart.map((item) => (
-                                                <div key={item.month} className="flex flex-1 flex-col items-center gap-2">
-                                                    <div className="flex w-full items-end justify-center">
-                                                        <div
-                                                            className="w-full max-w-14 rounded-t-2xl bg-gradient-to-t from-amber-400 via-cyan-400 to-emerald-300 shadow-lg shadow-cyan-500/20"
-                                                            style={{ height: `${item.value * 2}px` }}
-                                                        />
-                                                    </div>
-                                                    <span className="text-xs text-slate-400">{item.month}</span>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </article>
-
-                                    <article className="rounded-[2rem] border border-white/10 bg-slate-950/35 p-5 shadow-xl shadow-slate-950/25 sm:p-6">
-                                        <p className="text-sm text-slate-400">Top produits</p>
-                                        <h3 className="mt-1 text-2xl font-semibold text-white">Produits les plus vendus</h3>
-                                        <div className="mt-6 space-y-4">
-                                            {topProducts.map((product) => (
-                                                <div key={product.name} className="space-y-2 rounded-2xl border border-white/10 bg-slate-950/40 p-4">
-                                                    <div className="flex items-center justify-between gap-4 text-sm">
-                                                        <span className="text-slate-200">{product.name}</span>
-                                                        <span className="text-slate-400">{product.value}%</span>
-                                                    </div>
-                                                    <div className="h-3 rounded-full bg-white/5">
-                                                        <div
-                                                            className="h-3 rounded-full bg-gradient-to-r from-amber-400 via-cyan-400 to-emerald-300"
-                                                            style={{ width: `${product.value}%` }}
-                                                        />
-                                                    </div>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </article>
-                                </section>
-
-                                <section className="mt-6 rounded-[2rem] border border-white/10 bg-slate-950/35 p-5 shadow-xl shadow-slate-950/25 sm:p-6">
-                                    <p className="text-sm text-slate-400">Pourquoi les KPI ?</p>
-                                    <h3 className="mt-1 text-2xl font-semibold text-white">Les KPI donnent une lecture immédiate de la librairie</h3>
-                                    <p className="mt-3 max-w-4xl text-sm leading-6 text-slate-300">
-                                        Les indicateurs clés de performance servent à piloter l’activité en temps réel. Ils permettent de repérer les ventes, les ruptures, les produits performants et les zones qui nécessitent une action.
-                                    </p>
-                                    <div className="mt-5 grid gap-3 md:grid-cols-3">
-                                        {whyKpi.map((item) => (
-                                            <div key={item} className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-slate-200">
-                                                {item}
-                                            </div>
-                                        ))}
-                                    </div>
-                                </section>
-                            </>
+                            renderCustomerServiceWorkspace()
                         )}
                     </div>
                 </section>
