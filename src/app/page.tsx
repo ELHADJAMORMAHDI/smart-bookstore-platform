@@ -1,210 +1,819 @@
-export default function Home() {
-  const kpis = [
+"use client";
+
+import { FormEvent, useState } from "react";
+
+type MainSection = "admin" | "analytics";
+
+type AdminSection =
+    | "overview"
+    | "clients"
+    | "products"
+    | "suppliers"
+    | "sales"
+    | "purchases"
+    | "stock"
+    | "services"
+    | "users"
+    | "settings";
+
+type AdminModule = {
+    key: AdminSection;
+    title: string;
+    description: string;
+    tone: string;
+};
+
+type ModuleConfig = {
+    title: string;
+    badge: string;
+    summary: string;
+    fields: string[];
+    headers: string[];
+    rows: string[][];
+};
+
+const mainSections: Array<{ key: MainSection; label: string; description: string }> = [
+    {
+        key: "admin",
+        label: "Administration",
+        description: "Accéder aux modules de gestion métier",
+    },
+    {
+        key: "analytics",
+        label: "Analyse",
+        description: "Consulter les KPI, graphiques et alertes",
+    },
+];
+
+const adminModules: AdminModule[] = [
+    {
+        key: "clients",
+        title: "Clients",
+        description: "Ajouter, modifier et rechercher les clients de la librairie.",
+        tone: "from-cyan-400/20 to-cyan-500/5",
+    },
+    {
+        key: "products",
+        title: "Produits",
+        description: "Gérer les livres et fournitures dans un catalogue unifié.",
+        tone: "from-amber-400/20 to-amber-500/5",
+    },
+    {
+        key: "suppliers",
+        title: "Fournisseurs",
+        description: "Suivre les coordonnées, achats et historique des livraisons.",
+        tone: "from-emerald-400/20 to-emerald-500/5",
+    },
+    {
+        key: "sales",
+        title: "Ventes",
+        description: "Créer les tickets, factures et paiements des clients.",
+        tone: "from-violet-400/20 to-violet-500/5",
+    },
+    {
+        key: "purchases",
+        title: "Achats",
+        description: "Commander, réceptionner et mettre à jour les stocks.",
+        tone: "from-rose-400/20 to-rose-500/5",
+    },
+    {
+        key: "stock",
+        title: "Stock",
+        description: "Contrôler les entrées, sorties, ruptures et alertes.",
+        tone: "from-sky-400/20 to-sky-500/5",
+    },
+    {
+        key: "services",
+        title: "Services",
+        description: "Gérer les inscriptions scolaires et autres services.",
+        tone: "from-teal-400/20 to-teal-500/5",
+    },
+    {
+        key: "users",
+        title: "Utilisateurs",
+        description: "Administrer les rôles, permissions et journaux d’audit.",
+        tone: "from-indigo-400/20 to-indigo-500/5",
+    },
+    {
+        key: "settings",
+        title: "Paramètres",
+        description: "Configurer la librairie, la devise, le logo et la TVA.",
+        tone: "from-slate-400/20 to-slate-500/5",
+    },
+];
+
+const kpis = [
     { label: "Clients enregistrés", value: "12 480", delta: "+8,4 %" },
-    { label: "Chiffre d'affaires", value: "1,86 M", delta: "+14,2 %" },
+    { label: "Chiffre d’affaires", value: "1,86 M", delta: "+14,2 %" },
     { label: "Ventes du mois", value: "3 214", delta: "+9,1 %" },
     { label: "Stock critique", value: "18", delta: "Action requise" },
-  ];
+];
 
-  const modules = [
-    {
-      title: "Catalogue unifié",
-      description:
-        "Une base produit commune pour les livres et les fournitures scolaires, avec variantes spécialisées pour les attributs métier.",
+const monthlyChart = [
+    { month: "Jan", value: 48 },
+    { month: "Fév", value: 58 },
+    { month: "Mar", value: 52 },
+    { month: "Avr", value: 71 },
+    { month: "Mai", value: 64 },
+    { month: "Juin", value: 86 },
+];
+
+const topProducts = [
+    { name: "Cahier 96 pages", value: 92 },
+    { name: "Stylo bleu", value: 81 },
+    { name: "Livre Math 3e", value: 68 },
+    { name: "Compas", value: 47 },
+];
+
+const analyticsHighlights = [
+    "CA du jour / mois",
+    "Produits en rupture",
+    "Top livres / fournitures",
+    "Évolution mensuelle du CA",
+    "Paiements par mode",
+    "Alertes de stock minimum",
+];
+
+const whyKpi = [
+    "Voir rapidement la santé de l’activité",
+    "Détecter une baisse des ventes ou du stock",
+    "Comparer les périodes sans ouvrir des tableaux complexes",
+    "Aider le gérant à décider plus vite",
+];
+
+const moduleConfigs: Record<Exclude<AdminSection, "overview">, ModuleConfig> = {
+    clients: {
+        title: "Gestion des clients",
+        badge: "Client",
+        summary: "Créer, modifier, rechercher et suivre les clients de la librairie.",
+        fields: ["Nom", "Prénom", "Téléphone", "Email", "Adresse", "CIN"],
+        headers: ["Client", "Téléphone", "Email", "État"],
+        rows: [
+            ["Amina Benali", "0612345678", "amina@mail.com", "Actif"],
+            ["Youssef Idrissi", "0698765432", "youssef@mail.com", "Actif"],
+            ["Sara El Amrani", "0622334455", "sara@mail.com", "Actif"],
+        ],
     },
-    {
-      title: "Ventes et caisse",
-      description:
-        "Saisie rapide, remise contrôlée, TVA automatique, ticket de caisse et mise à jour du stock en temps réel.",
+    products: {
+        title: "Gestion des produits",
+        badge: "Produit",
+        summary: "Gérer les livres et les fournitures dans un catalogue unifié.",
+        fields: ["Code", "Nom", "Catégorie", "Prix d’achat", "Prix de vente", "Stock minimum"],
+        headers: ["Produit", "Catégorie", "Prix vente", "Stock"],
+        rows: [
+            ["Cahier 96 pages", "Papeterie", "8,50", "124"],
+            ["Livre Math 3e", "Livre", "72,00", "36"],
+            ["Stylo bleu", "Écriture", "2,20", "210"],
+        ],
     },
-    {
-      title: "Achats et fournisseurs",
-      description:
-        "Commandes, réceptions, factures et suivi des produits approvisionnés avec historisation complète.",
+    suppliers: {
+        title: "Gestion des fournisseurs",
+        badge: "Fournisseur",
+        summary: "Suivre les coordonnées, les achats et l’historique des livraisons.",
+        fields: ["Code", "Nom", "Téléphone", "Email", "Adresse", "Identifiant fiscal"],
+        headers: ["Fournisseur", "Téléphone", "Dernier achat", "État"],
+        rows: [
+            ["Société Atlas", "0522334455", "12/06/2026", "Actif"],
+            ["Papeterie Nord", "0533445566", "15/06/2026", "Actif"],
+            ["Librairie Centrale", "0544556677", "18/06/2026", "Actif"],
+        ],
     },
-    {
-      title: "Services administratifs",
-      description:
-        "Inscriptions scolaires, universitaires et transport, avec une architecture prête à recevoir de nouveaux services.",
+    sales: {
+        title: "Gestion des ventes",
+        badge: "Vente",
+        summary: "Créer les tickets, factures, remises et paiements clients.",
+        fields: ["Client", "Produit", "Quantité", "Remise", "TVA", "Paiement"],
+        headers: ["Ticket", "Client", "Montant", "Statut"],
+        rows: [
+            ["V-2026-001", "Amina Benali", "218,00", "Payé"],
+            ["V-2026-002", "Youssef Idrissi", "84,50", "Payé"],
+            ["V-2026-003", "Sara El Amrani", "35,00", "En attente"],
+        ],
     },
-    {
-      title: "Pilotage décisionnel",
-      description:
-        "KPI, top produits, évolution mensuelle, alertes de stock et exports PDF/Excel pour le reporting.",
+    purchases: {
+        title: "Gestion des achats",
+        badge: "Achat",
+        summary: "Commander, réceptionner et mettre à jour les stocks automatiquement.",
+        fields: ["Fournisseur", "Produit", "Quantité", "Prix unitaire", "Référence commande"],
+        headers: ["Commande", "Fournisseur", "Montant", "Réception"],
+        rows: [
+            ["A-2026-014", "Société Atlas", "3 500,00", "Partielle"],
+            ["A-2026-015", "Papeterie Nord", "1 240,00", "Complète"],
+            ["A-2026-016", "Librairie Centrale", "9 800,00", "En cours"],
+        ],
     },
-    {
-      title: "Sécurité et audit",
-      description:
-        "Rôles, permissions, journal d’actions, validations serveur et traçabilité des opérations sensibles.",
+    stock: {
+        title: "Gestion du stock",
+        badge: "Stock",
+        summary: "Contrôler les entrées, les sorties, les ruptures et les alertes.",
+        fields: ["Produit", "Type de mouvement", "Quantité", "Motif"],
+        headers: ["Produit", "Entrée", "Sortie", "Solde"],
+        rows: [
+            ["Cahier 96 pages", "40", "12", "124"],
+            ["Livre Math 3e", "10", "4", "36"],
+            ["Stylo bleu", "80", "15", "210"],
+        ],
     },
-  ];
+    services: {
+        title: "Gestion des services",
+        badge: "Service",
+        summary: "Gérer les inscriptions scolaires et les autres services administratifs.",
+        fields: ["Client", "Type de service", "Montant", "Date", "État"],
+        headers: ["Service", "Client", "Montant", "Statut"],
+        rows: [
+            ["Inscription scolaire", "Amina Benali", "250,00", "Payé"],
+            ["Inscription universitaire", "Youssef Idrissi", "300,00", "Payé"],
+            ["Transport scolaire", "Sara El Amrani", "180,00", "En cours"],
+        ],
+    },
+    users: {
+        title: "Gestion des utilisateurs",
+        badge: "Utilisateur",
+        summary: "Administrer les rôles, les permissions et les journaux d’audit.",
+        fields: ["Nom", "Login", "Email", "Rôle", "Mot de passe"],
+        headers: ["Utilisateur", "Rôle", "Dernière connexion", "État"],
+        rows: [
+            ["Admin Principal", "admin", "admin@mail.com", "Administrateur"],
+            ["Caissier 1", "cashier01", "cashier@mail.com", "Caissier"],
+            ["Gestionnaire", "manager01", "manager@mail.com", "Gestionnaire"],
+        ],
+    },
+    settings: {
+        title: "Paramètres de la librairie",
+        badge: "Paramètre",
+        summary: "Configurer l’identité de la librairie, la TVA, la devise et le logo.",
+        fields: ["Nom librairie", "Adresse", "Téléphone", "Email", "Devise", "TVA"],
+        headers: ["Paramètre", "Valeur", "État", "Note"],
+        rows: [
+            ["Devise", "MAD", "Actif", "Monnaie utilisée"],
+            ["TVA", "20 %", "Actif", "Taux par défaut"],
+            ["Logo", "Upload", "Actif", "Identité visuelle"],
+        ],
+    },
+};
 
-  const navigation = [
-    "Tableau de bord",
-    "Ventes",
-    "Clients",
-    "Produits",
-    "Stock",
-    "Achats",
-    "Services",
-    "Rapports",
-    "Paramètres",
-  ];
+export default function Home() {
+    const [isAuthenticated, setIsAuthenticated] = useState(false);
+    const [activeSection, setActiveSection] = useState<MainSection>("admin");
+    const [activeAdminSection, setActiveAdminSection] = useState<AdminSection>("overview");
+    const [username, setUsername] = useState("admin");
+    const [password, setPassword] = useState("admin123");
 
-  const roadmap = [
-    "Base relationnelle normalisée jusqu’à la 3NF",
-    "API REST versionnée et documentée",
-    "Modules métiers découplés",
-    "Power BI branché sur des vues SQL dédiées",
-    "Évolutions futures: fidélité, e-commerce, retours",
-  ];
+    function handleLogin(event: FormEvent<HTMLFormElement>) {
+        event.preventDefault();
 
-  return (
-    <main className="relative overflow-hidden px-4 py-6 text-slate-100 sm:px-6 lg:px-8">
-      <div className="mx-auto flex min-h-[calc(100vh-3rem)] w-full max-w-7xl flex-col gap-6">
-        <header className="grid gap-4 rounded-[2rem] border border-white/10 bg-[var(--surface)] p-5 shadow-2xl shadow-slate-950/30 backdrop-blur xl:grid-cols-[1.6fr_1fr] xl:p-8">
-          <div className="space-y-5">
-            <div className="inline-flex items-center rounded-full border border-emerald-300/20 bg-emerald-300/10 px-4 py-2 text-sm text-emerald-200">
-              Librairie Pro · Gestion commerciale unifiée
-            </div>
-            <div className="space-y-3">
-              <h1 className="max-w-3xl text-4xl font-semibold tracking-tight text-white sm:text-5xl">
-                Pilotez une librairie moderne avec stock, ventes, services et reporting dans une seule plateforme.
-              </h1>
-              <p className="max-w-3xl text-base leading-7 text-slate-300 sm:text-lg">
-                Architecture pensée pour la 3NF, les rôles métier, la traçabilité, la BI et l’extension future vers le e-commerce, la fidélité et les nouveaux services.
-              </p>
-            </div>
-            <div className="flex flex-wrap gap-3 text-sm">
-              <span className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-slate-200">Produits unifiés</span>
-              <span className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-slate-200">Services extensibles</span>
-              <span className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-slate-200">API REST</span>
-              <span className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-slate-200">Power BI</span>
-            </div>
-          </div>
+        if (!username.trim() || !password.trim()) {
+            return;
+        }
 
-          <aside className="grid gap-3 rounded-[1.75rem] border border-white/10 bg-slate-950/40 p-4">
-            <div className="flex items-center justify-between">
-              <span className="text-sm font-medium text-slate-300">Navigation principale</span>
-              <span className="rounded-full bg-amber-400/15 px-3 py-1 text-xs text-amber-200">Responsive</span>
-            </div>
-            <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 xl:grid-cols-2">
-              {navigation.map((item) => (
-                <div
-                  key={item}
-                  className="rounded-2xl border border-white/10 bg-white/5 px-3 py-3 text-sm font-medium text-slate-200"
-                >
-                  {item}
-                </div>
-              ))}
-            </div>
-          </aside>
-        </header>
+        setIsAuthenticated(true);
+    }
 
-        <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-          {kpis.map((kpi) => (
-            <article
-              key={kpi.label}
-              className="rounded-[1.5rem] border border-white/10 bg-[var(--surface)] p-5 shadow-lg shadow-slate-950/20"
-            >
-              <p className="text-sm text-slate-400">{kpi.label}</p>
-              <div className="mt-3 flex items-end justify-between gap-3">
-                <strong className="text-3xl font-semibold text-white">{kpi.value}</strong>
-                <span className="rounded-full bg-white/5 px-3 py-1 text-xs font-medium text-emerald-200">
-                  {kpi.delta}
-                </span>
-              </div>
-            </article>
-          ))}
-        </section>
+    function handleLogout() {
+        setIsAuthenticated(false);
+        setActiveSection("admin");
+        setActiveAdminSection("overview");
+    }
 
-        <section className="grid gap-6 xl:grid-cols-[1.35fr_0.95fr]">
-          <div className="rounded-[2rem] border border-white/10 bg-[var(--surface)] p-5 shadow-xl shadow-slate-950/25 sm:p-6">
-            <div className="flex items-center justify-between gap-4">
-              <div>
-                <p className="text-sm text-slate-400">Socle métier</p>
-                <h2 className="mt-1 text-2xl font-semibold text-white">Modules fonctionnels principaux</h2>
-              </div>
-              <span className="rounded-full border border-cyan-300/20 bg-cyan-300/10 px-3 py-1 text-xs text-cyan-200">
-                Architecture modulaire
-              </span>
-            </div>
+    function renderModulePanel(section: Exclude<AdminSection, "overview">) {
+        const config = moduleConfigs[section];
 
-            <div className="mt-5 grid gap-4 md:grid-cols-2">
-              {modules.map((module) => (
-                <article
-                  key={module.title}
-                  className="rounded-3xl border border-white/10 bg-slate-950/35 p-5 transition-transform duration-200 hover:-translate-y-1 hover:border-amber-300/30"
-                >
-                  <h3 className="text-lg font-semibold text-white">{module.title}</h3>
-                  <p className="mt-2 text-sm leading-6 text-slate-300">{module.description}</p>
+        return (
+            <section className="grid gap-6 xl:grid-cols-[0.92fr_1.08fr]">
+                <article className="rounded-[2rem] border border-white/10 bg-[var(--surface)] p-5 shadow-xl shadow-slate-950/25 sm:p-6">
+                    <div className="flex items-center justify-between gap-4">
+                        <div>
+                            <p className="text-sm text-slate-400">{config.badge}</p>
+                            <h2 className="mt-1 text-2xl font-semibold text-white">{config.title}</h2>
+                        </div>
+                        <span className="rounded-full bg-white/5 px-3 py-1 text-xs text-slate-200">Interface métier</span>
+                    </div>
+
+                    <p className="mt-3 text-sm leading-6 text-slate-300">{config.summary}</p>
+
+                    <div className="mt-5 grid gap-3">
+                        {config.fields.map((field) => (
+                            <label key={field} className="grid gap-2 text-sm text-slate-300">
+                                <span>{field}</span>
+                                <input
+                                    type="text"
+                                    className="rounded-2xl border border-white/10 bg-slate-950/40 px-4 py-3 text-slate-100 outline-none placeholder:text-slate-500 focus:border-cyan-300/50"
+                                    placeholder={`Saisir ${field.toLowerCase()}`}
+                                />
+                            </label>
+                        ))}
+
+                        <div className="grid gap-3 sm:grid-cols-2">
+                            <button className="rounded-2xl bg-cyan-400 px-4 py-3 font-semibold text-slate-950 transition hover:bg-cyan-300">
+                                Enregistrer
+                            </button>
+                            <button className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 font-semibold text-slate-200 transition hover:bg-white/10">
+                                Réinitialiser
+                            </button>
+                        </div>
+                    </div>
                 </article>
-              ))}
-            </div>
-          </div>
 
-          <div className="grid gap-6">
-            <section className="rounded-[2rem] border border-white/10 bg-[var(--surface)] p-5 shadow-xl shadow-slate-950/25 sm:p-6">
-              <p className="text-sm text-slate-400">Décisions d’architecture</p>
-              <h2 className="mt-1 text-2xl font-semibold text-white">Choix structurants retenus</h2>
-              <ul className="mt-4 space-y-3 text-sm leading-6 text-slate-300">
-                {roadmap.map((item) => (
-                  <li key={item} className="flex gap-3">
-                    <span className="mt-2 h-2 w-2 shrink-0 rounded-full bg-amber-400" />
-                    <span>{item}</span>
-                  </li>
-                ))}
-              </ul>
+                <article className="rounded-[2rem] border border-white/10 bg-[var(--surface)] p-5 shadow-xl shadow-slate-950/25 sm:p-6">
+                    <div className="flex items-center justify-between gap-4">
+                        <div>
+                            <p className="text-sm text-slate-400">{config.title}</p>
+                            <h2 className="mt-1 text-2xl font-semibold text-white">Liste et suivi</h2>
+                        </div>
+                        <span className="rounded-full bg-white/5 px-3 py-1 text-xs text-slate-200">Consultation</span>
+                    </div>
+
+                    <div className="mt-5 flex gap-3">
+                        <input
+                            type="search"
+                            className="w-full rounded-2xl border border-white/10 bg-slate-950/40 px-4 py-3 text-slate-100 outline-none placeholder:text-slate-500 focus:border-cyan-300/50"
+                            placeholder="Rechercher"
+                        />
+                        <button className="rounded-2xl bg-emerald-400 px-4 py-3 font-semibold text-slate-950 transition hover:bg-emerald-300">
+                            Filtrer
+                        </button>
+                    </div>
+
+                    <div className="mt-5 overflow-hidden rounded-[1.5rem] border border-white/10">
+                        <div className={`grid gap-3 bg-white/5 px-4 py-3 text-xs font-semibold uppercase tracking-[0.25em] text-slate-400 ${config.headers.length === 4 ? "grid-cols-4" : "grid-cols-4"}`}>
+                            {config.headers.map((header) => (
+                                <span key={header}>{header}</span>
+                            ))}
+                        </div>
+                        {config.rows.map((row) => (
+                            <div key={row[0]} className="grid grid-cols-4 gap-3 border-t border-white/10 bg-slate-950/30 px-4 py-4 text-sm text-slate-200">
+                                {row.map((cell) => (
+                                    <span key={cell}>{cell}</span>
+                                ))}
+                            </div>
+                        ))}
+                    </div>
+                </article>
             </section>
+        );
+    }
 
-            <section className="rounded-[2rem] border border-white/10 bg-[var(--surface)] p-5 shadow-xl shadow-slate-950/25 sm:p-6">
-              <p className="text-sm text-slate-400">Tableau de bord cible</p>
-              <h2 className="mt-1 text-2xl font-semibold text-white">Indicateurs à afficher</h2>
-              <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-1">
-                {[
-                  "Ventes du jour et du mois",
-                  "Produits en rupture",
-                  "Top livres et top fournitures",
-                  "Évolution mensuelle du CA",
-                  "Paiements par mode",
-                  "Alertes de stock minimum",
-                ].map((item) => (
-                  <div key={item} className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-slate-200">
-                    {item}
-                  </div>
-                ))}
-              </div>
-            </section>
-          </div>
-        </section>
+    function renderAdminWorkspace() {
+        if (activeAdminSection === "overview") {
+            return (
+                <section className="grid gap-6 xl:grid-cols-[1.15fr_0.85fr]">
+                    <article className="rounded-[2rem] border border-white/10 bg-[var(--surface)] p-5 shadow-xl shadow-slate-950/25 sm:p-6">
+                        <div className="flex items-center justify-between gap-4">
+                            <div>
+                                <p className="text-sm text-slate-400">Gestion rapide</p>
+                                <h2 className="mt-1 text-2xl font-semibold text-white">Actions courantes</h2>
+                            </div>
+                            <span className="rounded-full bg-cyan-300/10 px-3 py-1 text-xs text-cyan-200">Buttons</span>
+                        </div>
 
-        <section className="grid gap-4 rounded-[2rem] border border-white/10 bg-[var(--surface-strong)] p-5 shadow-xl shadow-slate-950/25 lg:grid-cols-[1fr_1fr_1fr] sm:p-6">
-          <div>
-            <p className="text-sm text-slate-400">Expérience utilisateur</p>
-            <h2 className="mt-1 text-2xl font-semibold text-white">Menus clairs, rôles distincts, saisie rapide</h2>
-            <p className="mt-3 text-sm leading-6 text-slate-300">
-              L’interface doit être efficace pour la caisse, lisible pour le management et suffisamment structurée pour les rapports et l’audit.
-            </p>
-          </div>
-          <div className="rounded-3xl border border-white/10 bg-white/5 p-5">
-            <p className="text-xs uppercase tracking-[0.3em] text-slate-400">Couleurs</p>
-            <div className="mt-4 grid gap-3">
-              <div className="flex items-center gap-3"><span className="h-4 w-4 rounded-full bg-[#12324A]" /> Bleu nuit</div>
-              <div className="flex items-center gap-3"><span className="h-4 w-4 rounded-full bg-[#2E7D65]" /> Vert confiance</div>
-              <div className="flex items-center gap-3"><span className="h-4 w-4 rounded-full bg-[#E3A008]" /> Ambre action</div>
+                        <div className="mt-5 grid gap-3 sm:grid-cols-2">
+                            {[
+                                "Ajouter un client",
+                                "Ajouter un produit",
+                                "Ajouter un fournisseur",
+                                "Créer une vente",
+                                "Réceptionner un achat",
+                                "Créer un service",
+                            ].map((item) => (
+                                <button
+                                    key={item}
+                                    className="rounded-2xl border border-white/10 bg-white/5 px-4 py-4 text-left text-sm font-semibold text-slate-200 transition hover:bg-white/10"
+                                >
+                                    {item}
+                                </button>
+                            ))}
+                        </div>
+                    </article>
+
+                    <article className="rounded-[2rem] border border-white/10 bg-[var(--surface)] p-5 shadow-xl shadow-slate-950/25 sm:p-6">
+                        <p className="text-sm text-slate-400">Pourquoi ces boutons ?</p>
+                        <h2 className="mt-1 text-2xl font-semibold text-white">Navigation directe par métier</h2>
+                        <p className="mt-3 text-sm leading-6 text-slate-300">
+                            Les boutons évitent les menus trop complexes. Le caissier, le gestionnaire et l’administrateur accèdent rapidement à la fonction utile sans se perdre.
+                        </p>
+                        <div className="mt-5 grid gap-3">
+                            {[
+                                "Clients et fournisseurs",
+                                "Produits et stock",
+                                "Ventes et achats",
+                                "Services et utilisateurs",
+                            ].map((item) => (
+                                <div key={item} className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-slate-200">
+                                    {item}
+                                </div>
+                            ))}
+                        </div>
+                    </article>
+                </section>
+            );
+        }
+
+        if (activeAdminSection === "clients") {
+            return (
+                <section className="grid gap-6 xl:grid-cols-[0.92fr_1.08fr]">
+                    <article className="rounded-[2rem] border border-white/10 bg-[var(--surface)] p-5 shadow-xl shadow-slate-950/25 sm:p-6">
+                        <div className="flex items-center justify-between gap-4">
+                            <div>
+                                <p className="text-sm text-slate-400">Clients</p>
+                                <h2 className="mt-1 text-2xl font-semibold text-white">Ajouter un client</h2>
+                            </div>
+                            <span className="rounded-full bg-cyan-300/10 px-3 py-1 text-xs text-cyan-200">Interface client</span>
+                        </div>
+
+                        <div className="mt-5 grid gap-3">
+                            {[
+                                "Nom",
+                                "Prénom",
+                                "Téléphone",
+                                "Email",
+                                "Adresse",
+                                "CIN",
+                                "Date de naissance",
+                                "Sexe",
+                            ].map((field) => (
+                                <label key={field} className="grid gap-2 text-sm text-slate-300">
+                                    <span>{field}</span>
+                                    <input
+                                        type="text"
+                                        className="rounded-2xl border border-white/10 bg-slate-950/40 px-4 py-3 text-slate-100 outline-none placeholder:text-slate-500 focus:border-cyan-300/50"
+                                        placeholder={`Saisir ${field.toLowerCase()}`}
+                                    />
+                                </label>
+                            ))}
+                            <label className="grid gap-2 text-sm text-slate-300">
+                                <span>Observations</span>
+                                <textarea
+                                    rows={4}
+                                    className="rounded-2xl border border-white/10 bg-slate-950/40 px-4 py-3 text-slate-100 outline-none placeholder:text-slate-500 focus:border-cyan-300/50"
+                                    placeholder="Notes sur le client"
+                                />
+                            </label>
+
+                            <div className="grid gap-3 sm:grid-cols-2">
+                                <button className="rounded-2xl bg-cyan-400 px-4 py-3 font-semibold text-slate-950 transition hover:bg-cyan-300">
+                                    Enregistrer le client
+                                </button>
+                                <button className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 font-semibold text-slate-200 transition hover:bg-white/10">
+                                    Réinitialiser
+                                </button>
+                            </div>
+                        </div>
+                    </article>
+
+                    <article className="rounded-[2rem] border border-white/10 bg-[var(--surface)] p-5 shadow-xl shadow-slate-950/25 sm:p-6">
+                        <div className="flex items-center justify-between gap-4">
+                            <div>
+                                <p className="text-sm text-slate-400">Base clients</p>
+                                <h2 className="mt-1 text-2xl font-semibold text-white">Liste et recherche</h2>
+                            </div>
+                            <span className="rounded-full bg-white/5 px-3 py-1 text-xs text-slate-200">Recherche</span>
+                        </div>
+
+                        <div className="mt-5 flex gap-3">
+                            <input
+                                type="search"
+                                className="w-full rounded-2xl border border-white/10 bg-slate-950/40 px-4 py-3 text-slate-100 outline-none placeholder:text-slate-500 focus:border-cyan-300/50"
+                                placeholder="Rechercher par nom, téléphone ou email"
+                            />
+                            <button className="rounded-2xl bg-emerald-400 px-4 py-3 font-semibold text-slate-950 transition hover:bg-emerald-300">
+                                Rechercher
+                            </button>
+                        </div>
+
+                        <div className="mt-5 overflow-hidden rounded-[1.5rem] border border-white/10">
+                            <div className="grid grid-cols-4 gap-3 bg-white/5 px-4 py-3 text-xs font-semibold uppercase tracking-[0.25em] text-slate-400">
+                                <span>Client</span>
+                                <span>Téléphone</span>
+                                <span>Email</span>
+                                <span>Action</span>
+                            </div>
+                            {[
+                                ["Amina Benali", "0612345678", "amina@mail.com"],
+                                ["Youssef Idrissi", "0698765432", "youssef@mail.com"],
+                                ["Sara El Amrani", "0622334455", "sara@mail.com"],
+                            ].map((row) => (
+                                <div key={row[0]} className="grid grid-cols-4 gap-3 border-t border-white/10 bg-slate-950/30 px-4 py-4 text-sm text-slate-200">
+                                    <span>{row[0]}</span>
+                                    <span>{row[1]}</span>
+                                    <span>{row[2]}</span>
+                                    <button className="justify-self-start rounded-full border border-cyan-300/20 bg-cyan-300/10 px-3 py-1 text-xs text-cyan-100">
+                                        Ouvrir
+                                    </button>
+                                </div>
+                            ))}
+                        </div>
+                    </article>
+                </section>
+            );
+        }
+
+        return renderModulePanel(activeAdminSection);
+    }
+
+    if (!isAuthenticated) {
+        return (
+            <main className="min-h-screen px-4 py-6 text-slate-100 sm:px-6 lg:px-8">
+                <div className="mx-auto grid min-h-[calc(100vh-3rem)] w-full max-w-7xl items-stretch gap-6 lg:grid-cols-[1.15fr_0.85fr]">
+                    <section className="rounded-[2rem] border border-white/10 bg-[var(--surface)] p-6 shadow-2xl shadow-slate-950/30 backdrop-blur sm:p-8">
+                        <div className="inline-flex rounded-full border border-emerald-300/20 bg-emerald-300/10 px-4 py-2 text-sm text-emerald-200">
+                            Librairie Pro · Plateforme de gestion
+                        </div>
+                        <h1 className="mt-6 max-w-3xl text-4xl font-semibold tracking-tight text-white sm:text-5xl">
+                            Une seule plateforme pour gérer la librairie, les clients, les produits, les services et l’analyse.
+                        </h1>
+                        <p className="mt-4 max-w-2xl text-base leading-7 text-slate-300 sm:text-lg">
+                            Le premier écran est la connexion. Après authentification, l’utilisateur accède à un portail composé de boutons d’administration et d’un espace d’analyse avec KPI et graphiques.
+                        </p>
+
+                        <div className="mt-8 grid gap-4 sm:grid-cols-2">
+                            {[
+                                "Gestion des clients et fournisseurs",
+                                "Ventes, achats et stock",
+                                "Services administratifs",
+                                "Tableaux de bord et rapports",
+                            ].map((item) => (
+                                <div key={item} className="rounded-3xl border border-white/10 bg-white/5 px-4 py-4 text-sm text-slate-200">
+                                    {item}
+                                </div>
+                            ))}
+                        </div>
+
+                        <div className="mt-8 rounded-[1.75rem] border border-white/10 bg-slate-950/35 p-5">
+                            <p className="text-sm text-slate-400">Exemple de compte de démonstration</p>
+                            <div className="mt-3 grid gap-2 text-sm text-slate-200">
+                                <div>Utilisateur: <span className="font-semibold text-white">admin</span></div>
+                                <div>Mot de passe: <span className="font-semibold text-white">admin123</span></div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section className="rounded-[2rem] border border-white/10 bg-[var(--surface-strong)] p-6 shadow-2xl shadow-slate-950/30 sm:p-8">
+                        <div>
+                            <p className="text-sm text-slate-400">Connexion</p>
+                            <h2 className="mt-1 text-2xl font-semibold text-white">Accéder à la plateforme</h2>
+                        </div>
+
+                        <form onSubmit={handleLogin} className="mt-6 space-y-4">
+                            <label className="grid gap-2 text-sm text-slate-300">
+                                <span>Nom d’utilisateur</span>
+                                <input
+                                    value={username}
+                                    onChange={(event) => setUsername(event.target.value)}
+                                    className="rounded-2xl border border-white/10 bg-slate-950/40 px-4 py-3 text-slate-100 outline-none placeholder:text-slate-500 focus:border-cyan-300/50"
+                                    placeholder="Entrez votre identifiant"
+                                />
+                            </label>
+
+                            <label className="grid gap-2 text-sm text-slate-300">
+                                <span>Mot de passe</span>
+                                <input
+                                    type="password"
+                                    value={password}
+                                    onChange={(event) => setPassword(event.target.value)}
+                                    className="rounded-2xl border border-white/10 bg-slate-950/40 px-4 py-3 text-slate-100 outline-none placeholder:text-slate-500 focus:border-cyan-300/50"
+                                    placeholder="Entrez votre mot de passe"
+                                />
+                            </label>
+
+                            <button className="mt-2 w-full rounded-2xl bg-cyan-400 px-4 py-3 font-semibold text-slate-950 transition hover:bg-cyan-300">
+                                Se connecter
+                            </button>
+                        </form>
+
+                        <div className="mt-6 rounded-[1.5rem] border border-white/10 bg-white/5 p-5 text-sm text-slate-300">
+                            Après connexion, l’utilisateur accède à un menu principal composé de boutons pour la partie administrative et un bouton ou onglet pour l’analyse.
+                        </div>
+                    </section>
+                </div>
+            </main>
+        );
+    }
+
+    return (
+        <main className="min-h-screen px-4 py-6 text-slate-100 sm:px-6 lg:px-8">
+            <div className="mx-auto flex min-h-[calc(100vh-3rem)] w-full max-w-7xl flex-col gap-6">
+                <header className="rounded-[2rem] border border-white/10 bg-[var(--surface)] p-5 shadow-2xl shadow-slate-950/30 backdrop-blur sm:p-6">
+                    <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                        <div>
+                            <div className="inline-flex rounded-full border border-emerald-300/20 bg-emerald-300/10 px-4 py-2 text-sm text-emerald-200">
+                                Connexion réussie · Portail librairie
+                            </div>
+                            <h1 className="mt-4 text-3xl font-semibold tracking-tight text-white sm:text-4xl">
+                                Interface principale de gestion
+                            </h1>
+                            <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-300 sm:text-base">
+                                Choisissez une interface métier: administration pour gérer les données et analyse pour voir la situation de la librairie.
+                            </p>
+                        </div>
+
+                        <div className="flex flex-wrap gap-3">
+                            {mainSections.map((section) => {
+                                const isActive = activeSection === section.key;
+                                return (
+                                    <button
+                                        key={section.key}
+                                        onClick={() => setActiveSection(section.key)}
+                                        className={`rounded-2xl px-4 py-3 text-left text-sm font-semibold transition ${isActive
+                                            ? "border border-cyan-300/30 bg-cyan-400 text-slate-950"
+                                            : "border border-white/10 bg-white/5 text-slate-200 hover:bg-white/10"
+                                            }`}
+                                    >
+                                        <div>{section.label}</div>
+                                        <div className={`mt-1 text-xs ${isActive ? "text-slate-950/70" : "text-slate-400"}`}>
+                                            {section.description}
+                                        </div>
+                                    </button>
+                                );
+                            })}
+                            <button
+                                onClick={handleLogout}
+                                className="rounded-2xl border border-rose-300/20 bg-rose-300/10 px-4 py-3 text-sm font-semibold text-rose-100 transition hover:bg-rose-300/20"
+                            >
+                                Déconnexion
+                            </button>
+                        </div>
+                    </div>
+                </header>
+
+                {activeSection === "admin" ? (
+                    <>
+                        <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+                            {kpis.map((kpi) => (
+                                <article
+                                    key={kpi.label}
+                                    className="rounded-[1.5rem] border border-white/10 bg-[var(--surface)] p-5 shadow-lg shadow-slate-950/20"
+                                >
+                                    <p className="text-sm text-slate-400">{kpi.label}</p>
+                                    <div className="mt-3 flex items-end justify-between gap-3">
+                                        <strong className="text-3xl font-semibold text-white">{kpi.value}</strong>
+                                        <span className="rounded-full bg-white/5 px-3 py-1 text-xs font-medium text-emerald-200">
+                                            {kpi.delta}
+                                        </span>
+                                    </div>
+                                </article>
+                            ))}
+                        </section>
+
+                        <section className="rounded-[2rem] border border-white/10 bg-[var(--surface)] p-5 shadow-xl shadow-slate-950/25 sm:p-6">
+                            <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+                                <div>
+                                    <p className="text-sm text-slate-400">Boutons d’administration</p>
+                                    <h2 className="mt-1 text-2xl font-semibold text-white">Accès rapide aux modules métier</h2>
+                                </div>
+                                <div className="rounded-full bg-amber-300/10 px-3 py-1 text-xs text-amber-200">
+                                    Interface administrative
+                                </div>
+                            </div>
+
+                            <div className="mt-5 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                                {adminModules.map((module) => (
+                                    <button
+                                        key={module.title}
+                                        onClick={() => setActiveAdminSection(module.key)}
+                                        className={`rounded-[1.5rem] border border-white/10 bg-gradient-to-br ${module.tone} p-5 text-left transition hover:-translate-y-1 hover:border-white/20`}
+                                    >
+                                        <div className="text-lg font-semibold text-white">{module.title}</div>
+                                        <p className="mt-2 text-sm leading-6 text-slate-300">{module.description}</p>
+                                    </button>
+                                ))}
+                            </div>
+                        </section>
+
+                        <section className="rounded-[2rem] border border-white/10 bg-[var(--surface)] p-5 shadow-xl shadow-slate-950/25 sm:p-6">
+                            <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+                                <div>
+                                    <p className="text-sm text-slate-400">Boutons d’administration</p>
+                                    <h2 className="mt-1 text-2xl font-semibold text-white">Sélectionnez un module pour ouvrir son interface</h2>
+                                </div>
+                                <div className="rounded-full bg-cyan-300/10 px-3 py-1 text-xs text-cyan-200">
+                                    {adminModules.find((module) => module.key === activeAdminSection)?.title ?? "Vue générale"}
+                                </div>
+                            </div>
+
+                            <div className="mt-5 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                                <button
+                                    onClick={() => setActiveAdminSection("clients")}
+                                    className="rounded-[1.5rem] border border-white/10 bg-gradient-to-br from-cyan-400/20 to-cyan-500/5 p-5 text-left transition hover:-translate-y-1 hover:border-white/20"
+                                >
+                                    <div className="text-lg font-semibold text-white">Clients</div>
+                                    <p className="mt-2 text-sm leading-6 text-slate-300">Ajouter, modifier et rechercher les clients de la librairie.</p>
+                                </button>
+                                {adminModules.filter((module) => module.key !== "clients").map((module) => (
+                                    <button
+                                        key={module.key}
+                                        onClick={() => setActiveAdminSection(module.key)}
+                                        className={`rounded-[1.5rem] border border-white/10 bg-gradient-to-br ${module.tone} p-5 text-left transition hover:-translate-y-1 hover:border-white/20`}
+                                    >
+                                        <div className="text-lg font-semibold text-white">{module.title}</div>
+                                        <p className="mt-2 text-sm leading-6 text-slate-300">{module.description}</p>
+                                    </button>
+                                ))}
+                            </div>
+
+                            <div className="mt-6">{renderAdminWorkspace()}</div>
+                        </section>
+                    </>
+                ) : (
+                    <>
+                        <section className="grid gap-6 xl:grid-cols-[1.05fr_0.95fr]">
+                            <article className="rounded-[2rem] border border-white/10 bg-[var(--surface)] p-5 shadow-xl shadow-slate-950/25 sm:p-6">
+                                <div className="flex items-center justify-between gap-4">
+                                    <div>
+                                        <p className="text-sm text-slate-400">Tableau de bord</p>
+                                        <h2 className="mt-1 text-2xl font-semibold text-white">Indicateurs clés de performance</h2>
+                                    </div>
+                                    <span className="rounded-full bg-rose-300/10 px-3 py-1 text-xs text-rose-200">KPI</span>
+                                </div>
+
+                                <div className="mt-5 grid gap-4 md:grid-cols-2">
+                                    {kpis.map((kpi) => (
+                                        <div key={kpi.label} className="rounded-3xl border border-white/10 bg-slate-950/35 p-5">
+                                            <p className="text-sm text-slate-400">{kpi.label}</p>
+                                            <div className="mt-3 flex items-end justify-between gap-3">
+                                                <strong className="text-3xl font-semibold text-white">{kpi.value}</strong>
+                                                <span className="rounded-full bg-white/5 px-3 py-1 text-xs text-emerald-200">{kpi.delta}</span>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </article>
+
+                            <article className="rounded-[2rem] border border-white/10 bg-[var(--surface)] p-5 shadow-xl shadow-slate-950/25 sm:p-6">
+                                <p className="text-sm text-slate-400">Situation de la librairie</p>
+                                <h2 className="mt-1 text-2xl font-semibold text-white">Alertes et points de contrôle</h2>
+                                <div className="mt-5 grid gap-3">
+                                    {analyticsHighlights.map((item) => (
+                                        <div key={item} className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-slate-200">
+                                            {item}
+                                        </div>
+                                    ))}
+                                </div>
+                            </article>
+                        </section>
+
+                        <section className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
+                            <article className="rounded-[2rem] border border-white/10 bg-[var(--surface)] p-5 shadow-xl shadow-slate-950/25 sm:p-6">
+                                <div className="flex items-center justify-between gap-4">
+                                    <div>
+                                        <p className="text-sm text-slate-400">Graphique mensuel</p>
+                                        <h2 className="mt-1 text-2xl font-semibold text-white">Évolution du chiffre d’affaires</h2>
+                                    </div>
+                                    <span className="rounded-full bg-cyan-300/10 px-3 py-1 text-xs text-cyan-200">Analyse</span>
+                                </div>
+                                <div className="mt-6 flex h-72 items-end gap-3 rounded-[1.5rem] border border-white/10 bg-slate-950/35 p-4">
+                                    {monthlyChart.map((item) => (
+                                        <div key={item.month} className="flex flex-1 flex-col items-center gap-2">
+                                            <div className="flex w-full items-end justify-center">
+                                                <div
+                                                    className="w-full max-w-14 rounded-t-2xl bg-gradient-to-t from-amber-400 via-cyan-400 to-emerald-300 shadow-lg shadow-cyan-500/20"
+                                                    style={{ height: `${item.value * 2}px` }}
+                                                />
+                                            </div>
+                                            <span className="text-xs text-slate-400">{item.month}</span>
+                                        </div>
+                                    ))}
+                                </div>
+                            </article>
+
+                            <article className="rounded-[2rem] border border-white/10 bg-[var(--surface)] p-5 shadow-xl shadow-slate-950/25 sm:p-6">
+                                <p className="text-sm text-slate-400">Top produits</p>
+                                <h2 className="mt-1 text-2xl font-semibold text-white">Produits les plus vendus</h2>
+                                <div className="mt-6 space-y-4">
+                                    {topProducts.map((product) => (
+                                        <div key={product.name} className="space-y-2 rounded-2xl border border-white/10 bg-slate-950/35 p-4">
+                                            <div className="flex items-center justify-between gap-4 text-sm">
+                                                <span className="text-slate-200">{product.name}</span>
+                                                <span className="text-slate-400">{product.value}%</span>
+                                            </div>
+                                            <div className="h-3 rounded-full bg-white/5">
+                                                <div
+                                                    className="h-3 rounded-full bg-gradient-to-r from-amber-400 via-cyan-400 to-emerald-300"
+                                                    style={{ width: `${product.value}%` }}
+                                                />
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </article>
+                        </section>
+
+                        <section className="rounded-[2rem] border border-white/10 bg-[var(--surface)] p-5 shadow-xl shadow-slate-950/25 sm:p-6">
+                            <p className="text-sm text-slate-400">Pourquoi les KPI ?</p>
+                            <h2 className="mt-1 text-2xl font-semibold text-white">Les KPI donnent une lecture immédiate de la librairie</h2>
+                            <p className="mt-3 max-w-4xl text-sm leading-6 text-slate-300">
+                                Les indicateurs clés de performance servent à piloter l’activité en temps réel. Ils permettent de repérer les ventes, les ruptures, les produits performants et les zones qui nécessitent une action.
+                            </p>
+                            <div className="mt-5 grid gap-3 md:grid-cols-3">
+                                {whyKpi.map((item) => (
+                                    <div key={item} className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-slate-200">
+                                        {item}
+                                    </div>
+                                ))}
+                            </div>
+                        </section>
+                    </>
+                )}
             </div>
-          </div>
-          <div className="rounded-3xl border border-white/10 bg-white/5 p-5">
-            <p className="text-xs uppercase tracking-[0.3em] text-slate-400">Extensions futures</p>
-            <ul className="mt-4 space-y-2 text-sm text-slate-200">
-              <li>• Fidélité client</li>
-              <li>• Réservation de livres</li>
-              <li>• Vente en ligne</li>
-              <li>• Gestion des retours</li>
-            </ul>
-          </div>
-        </section>
-      </div>
-    </main>
-  );
+        </main>
+    );
 }
