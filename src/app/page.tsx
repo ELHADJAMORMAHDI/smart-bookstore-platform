@@ -590,229 +590,254 @@ export default function Home() {
     }
 
     return (
-        <main className="min-h-screen px-4 py-6 text-slate-100 sm:px-6 lg:px-8">
-            <div className="mx-auto flex min-h-[calc(100vh-3rem)] w-full max-w-7xl flex-col gap-6">
-                <header className="rounded-[2rem] border border-white/10 bg-[var(--surface)] p-5 shadow-2xl shadow-slate-950/30 backdrop-blur sm:p-6">
-                    <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-                        <div>
-                            <div className="inline-flex rounded-full border border-emerald-300/20 bg-emerald-300/10 px-4 py-2 text-sm text-emerald-200">
-                                Connexion réussie · Portail librairie
-                            </div>
-                            <h1 className="mt-4 text-3xl font-semibold tracking-tight text-white sm:text-4xl">
-                                Interface principale de gestion
-                            </h1>
-                            <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-300 sm:text-base">
-                                Choisissez une interface métier: administration pour gérer les données et analyse pour voir la situation de la librairie.
-                            </p>
+        <main className="min-h-screen px-4 py-4 text-slate-100 sm:px-6 lg:px-8">
+            <div className="mx-auto grid min-h-[calc(100vh-2rem)] w-full max-w-[1600px] gap-4 lg:grid-cols-[280px_1fr]">
+                <aside className="flex flex-col rounded-[2rem] border border-white/10 bg-[var(--surface)] p-4 shadow-2xl shadow-slate-950/30">
+                    <div className="rounded-[1.5rem] border border-white/10 bg-slate-950/35 p-4">
+                        <div className="inline-flex rounded-full border border-emerald-300/20 bg-emerald-300/10 px-3 py-1 text-xs text-emerald-200">
+                            Librairie Pro
                         </div>
+                        <h1 className="mt-3 text-lg font-semibold text-white">Panneau de gestion</h1>
+                        <p className="mt-1 text-sm leading-6 text-slate-400">
+                            Navigation à gauche, contenu métier à droite.
+                        </p>
+                    </div>
 
-                        <div className="flex flex-wrap gap-3">
+                    <div className="mt-4 rounded-[1.5rem] border border-white/10 bg-slate-950/30 p-3">
+                        <p className="px-2 text-xs font-semibold uppercase tracking-[0.25em] text-slate-500">Modules</p>
+                        <div className="mt-3 flex flex-col gap-2">
                             {mainSections.map((section) => {
                                 const isActive = activeSection === section.key;
+
                                 return (
                                     <button
                                         key={section.key}
                                         onClick={() => setActiveSection(section.key)}
-                                        className={`rounded-2xl px-4 py-3 text-left text-sm font-semibold transition ${isActive
+                                        className={`rounded-2xl px-4 py-3 text-left transition ${isActive
                                             ? "border border-cyan-300/30 bg-cyan-400 text-slate-950"
                                             : "border border-white/10 bg-white/5 text-slate-200 hover:bg-white/10"
                                             }`}
                                     >
-                                        <div>{section.label}</div>
+                                        <div className="text-sm font-semibold">{section.label}</div>
                                         <div className={`mt-1 text-xs ${isActive ? "text-slate-950/70" : "text-slate-400"}`}>
                                             {section.description}
                                         </div>
                                     </button>
                                 );
                             })}
-                            <button
-                                onClick={handleLogout}
-                                className="rounded-2xl border border-rose-300/20 bg-rose-300/10 px-4 py-3 text-sm font-semibold text-rose-100 transition hover:bg-rose-300/20"
-                            >
-                                Déconnexion
-                            </button>
                         </div>
                     </div>
-                </header>
 
-                {activeSection === "admin" ? (
-                    <>
-                        <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-                            {kpis.map((kpi) => (
-                                <article
-                                    key={kpi.label}
-                                    className="rounded-[1.5rem] border border-white/10 bg-[var(--surface)] p-5 shadow-lg shadow-slate-950/20"
-                                >
-                                    <p className="text-sm text-slate-400">{kpi.label}</p>
-                                    <div className="mt-3 flex items-end justify-between gap-3">
-                                        <strong className="text-3xl font-semibold text-white">{kpi.value}</strong>
-                                        <span className="rounded-full bg-white/5 px-3 py-1 text-xs font-medium text-emerald-200">
-                                            {kpi.delta}
-                                        </span>
-                                    </div>
-                                </article>
-                            ))}
-                        </section>
-
-                        <section className="rounded-[2rem] border border-white/10 bg-[var(--surface)] p-5 shadow-xl shadow-slate-950/25 sm:p-6">
-                            <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-                                <div>
-                                    <p className="text-sm text-slate-400">Boutons d’administration</p>
-                                    <h2 className="mt-1 text-2xl font-semibold text-white">Accès rapide aux modules métier</h2>
-                                </div>
-                                <div className="rounded-full bg-amber-300/10 px-3 py-1 text-xs text-amber-200">
-                                    Interface administrative
-                                </div>
-                            </div>
-
-                            <div className="mt-5 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-                                {adminModules.map((module) => (
-                                    <button
-                                        key={module.title}
-                                        onClick={() => setActiveAdminSection(module.key)}
-                                        className={`rounded-[1.5rem] border border-white/10 bg-gradient-to-br ${module.tone} p-5 text-left transition hover:-translate-y-1 hover:border-white/20`}
-                                    >
-                                        <div className="text-lg font-semibold text-white">{module.title}</div>
-                                        <p className="mt-2 text-sm leading-6 text-slate-300">{module.description}</p>
-                                    </button>
-                                ))}
-                            </div>
-                        </section>
-
-                        <section className="rounded-[2rem] border border-white/10 bg-[var(--surface)] p-5 shadow-xl shadow-slate-950/25 sm:p-6">
-                            <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-                                <div>
-                                    <p className="text-sm text-slate-400">Boutons d’administration</p>
-                                    <h2 className="mt-1 text-2xl font-semibold text-white">Sélectionnez un module pour ouvrir son interface</h2>
-                                </div>
-                                <div className="rounded-full bg-cyan-300/10 px-3 py-1 text-xs text-cyan-200">
-                                    {adminModules.find((module) => module.key === activeAdminSection)?.title ?? "Vue générale"}
-                                </div>
-                            </div>
-
-                            <div className="mt-5 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                    {activeSection === "admin" && (
+                        <div className="mt-4 flex-1 rounded-[1.5rem] border border-white/10 bg-slate-950/30 p-3">
+                            <p className="px-2 text-xs font-semibold uppercase tracking-[0.25em] text-slate-500">Administration</p>
+                            <div className="mt-3 flex flex-col gap-2">
                                 <button
-                                    onClick={() => setActiveAdminSection("clients")}
-                                    className="rounded-[1.5rem] border border-white/10 bg-gradient-to-br from-cyan-400/20 to-cyan-500/5 p-5 text-left transition hover:-translate-y-1 hover:border-white/20"
+                                    onClick={() => setActiveAdminSection("overview")}
+                                    className={`rounded-2xl px-4 py-3 text-left transition ${activeAdminSection === "overview"
+                                        ? "border border-amber-300/30 bg-amber-400 text-slate-950"
+                                        : "border border-white/10 bg-white/5 text-slate-200 hover:bg-white/10"
+                                        }`}
                                 >
-                                    <div className="text-lg font-semibold text-white">Clients</div>
-                                    <p className="mt-2 text-sm leading-6 text-slate-300">Ajouter, modifier et rechercher les clients de la librairie.</p>
+                                    Vue générale
                                 </button>
-                                {adminModules.filter((module) => module.key !== "clients").map((module) => (
-                                    <button
-                                        key={module.key}
-                                        onClick={() => setActiveAdminSection(module.key)}
-                                        className={`rounded-[1.5rem] border border-white/10 bg-gradient-to-br ${module.tone} p-5 text-left transition hover:-translate-y-1 hover:border-white/20`}
-                                    >
-                                        <div className="text-lg font-semibold text-white">{module.title}</div>
-                                        <p className="mt-2 text-sm leading-6 text-slate-300">{module.description}</p>
-                                    </button>
-                                ))}
+                                {adminModules.map((module) => {
+                                    const isActive = activeAdminSection === module.key;
+
+                                    return (
+                                        <button
+                                            key={module.key}
+                                            onClick={() => setActiveAdminSection(module.key)}
+                                            className={`rounded-2xl px-4 py-3 text-left transition ${isActive
+                                                ? "border border-cyan-300/30 bg-cyan-400 text-slate-950"
+                                                : "border border-white/10 bg-white/5 text-slate-200 hover:bg-white/10"
+                                                }`}
+                                        >
+                                            <div className="text-sm font-semibold">{module.title}</div>
+                                        </button>
+                                    );
+                                })}
                             </div>
+                        </div>
+                    )}
 
-                            <div className="mt-6">{renderAdminWorkspace()}</div>
-                        </section>
-                    </>
-                ) : (
-                    <>
-                        <section className="grid gap-6 xl:grid-cols-[1.05fr_0.95fr]">
-                            <article className="rounded-[2rem] border border-white/10 bg-[var(--surface)] p-5 shadow-xl shadow-slate-950/25 sm:p-6">
-                                <div className="flex items-center justify-between gap-4">
-                                    <div>
-                                        <p className="text-sm text-slate-400">Tableau de bord</p>
-                                        <h2 className="mt-1 text-2xl font-semibold text-white">Indicateurs clés de performance</h2>
-                                    </div>
-                                    <span className="rounded-full bg-rose-300/10 px-3 py-1 text-xs text-rose-200">KPI</span>
-                                </div>
+                    <button
+                        onClick={handleLogout}
+                        className="mt-4 rounded-2xl border border-rose-300/20 bg-rose-300/10 px-4 py-3 text-left text-sm font-semibold text-rose-100 transition hover:bg-rose-300/20"
+                    >
+                        Déconnexion
+                    </button>
+                </aside>
 
-                                <div className="mt-5 grid gap-4 md:grid-cols-2">
-                                    {kpis.map((kpi) => (
-                                        <div key={kpi.label} className="rounded-3xl border border-white/10 bg-slate-950/35 p-5">
-                                            <p className="text-sm text-slate-400">{kpi.label}</p>
-                                            <div className="mt-3 flex items-end justify-between gap-3">
-                                                <strong className="text-3xl font-semibold text-white">{kpi.value}</strong>
-                                                <span className="rounded-full bg-white/5 px-3 py-1 text-xs text-emerald-200">{kpi.delta}</span>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            </article>
-
-                            <article className="rounded-[2rem] border border-white/10 bg-[var(--surface)] p-5 shadow-xl shadow-slate-950/25 sm:p-6">
-                                <p className="text-sm text-slate-400">Situation de la librairie</p>
-                                <h2 className="mt-1 text-2xl font-semibold text-white">Alertes et points de contrôle</h2>
-                                <div className="mt-5 grid gap-3">
-                                    {analyticsHighlights.map((item) => (
-                                        <div key={item} className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-slate-200">
-                                            {item}
-                                        </div>
-                                    ))}
-                                </div>
-                            </article>
-                        </section>
-
-                        <section className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
-                            <article className="rounded-[2rem] border border-white/10 bg-[var(--surface)] p-5 shadow-xl shadow-slate-950/25 sm:p-6">
-                                <div className="flex items-center justify-between gap-4">
-                                    <div>
-                                        <p className="text-sm text-slate-400">Graphique mensuel</p>
-                                        <h2 className="mt-1 text-2xl font-semibold text-white">Évolution du chiffre d’affaires</h2>
-                                    </div>
-                                    <span className="rounded-full bg-cyan-300/10 px-3 py-1 text-xs text-cyan-200">Analyse</span>
-                                </div>
-                                <div className="mt-6 flex h-72 items-end gap-3 rounded-[1.5rem] border border-white/10 bg-slate-950/35 p-4">
-                                    {monthlyChart.map((item) => (
-                                        <div key={item.month} className="flex flex-1 flex-col items-center gap-2">
-                                            <div className="flex w-full items-end justify-center">
-                                                <div
-                                                    className="w-full max-w-14 rounded-t-2xl bg-gradient-to-t from-amber-400 via-cyan-400 to-emerald-300 shadow-lg shadow-cyan-500/20"
-                                                    style={{ height: `${item.value * 2}px` }}
-                                                />
-                                            </div>
-                                            <span className="text-xs text-slate-400">{item.month}</span>
-                                        </div>
-                                    ))}
-                                </div>
-                            </article>
-
-                            <article className="rounded-[2rem] border border-white/10 bg-[var(--surface)] p-5 shadow-xl shadow-slate-950/25 sm:p-6">
-                                <p className="text-sm text-slate-400">Top produits</p>
-                                <h2 className="mt-1 text-2xl font-semibold text-white">Produits les plus vendus</h2>
-                                <div className="mt-6 space-y-4">
-                                    {topProducts.map((product) => (
-                                        <div key={product.name} className="space-y-2 rounded-2xl border border-white/10 bg-slate-950/35 p-4">
-                                            <div className="flex items-center justify-between gap-4 text-sm">
-                                                <span className="text-slate-200">{product.name}</span>
-                                                <span className="text-slate-400">{product.value}%</span>
-                                            </div>
-                                            <div className="h-3 rounded-full bg-white/5">
-                                                <div
-                                                    className="h-3 rounded-full bg-gradient-to-r from-amber-400 via-cyan-400 to-emerald-300"
-                                                    style={{ width: `${product.value}%` }}
-                                                />
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            </article>
-                        </section>
-
-                        <section className="rounded-[2rem] border border-white/10 bg-[var(--surface)] p-5 shadow-xl shadow-slate-950/25 sm:p-6">
-                            <p className="text-sm text-slate-400">Pourquoi les KPI ?</p>
-                            <h2 className="mt-1 text-2xl font-semibold text-white">Les KPI donnent une lecture immédiate de la librairie</h2>
-                            <p className="mt-3 max-w-4xl text-sm leading-6 text-slate-300">
-                                Les indicateurs clés de performance servent à piloter l’activité en temps réel. Ils permettent de repérer les ventes, les ruptures, les produits performants et les zones qui nécessitent une action.
+                <section className="rounded-[2rem] border border-white/10 bg-[var(--surface-strong)] p-5 shadow-2xl shadow-slate-950/30 sm:p-6">
+                    <div className="flex flex-col gap-4 border-b border-white/10 pb-5 lg:flex-row lg:items-center lg:justify-between">
+                        <div>
+                            <div className="inline-flex rounded-full border border-emerald-300/20 bg-emerald-300/10 px-4 py-2 text-sm text-emerald-200">
+                                Connexion réussie · Portail librairie
+                            </div>
+                            <h2 className="mt-4 text-3xl font-semibold tracking-tight text-white sm:text-4xl">
+                                {activeSection === "admin" ? "Interface d’administration" : "Interface d’analyse"}
+                            </h2>
+                            <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-300 sm:text-base">
+                                La barre latérale à gauche contient tous les boutons. Le panneau de droite affiche l’écran de travail sélectionné.
                             </p>
-                            <div className="mt-5 grid gap-3 md:grid-cols-3">
-                                {whyKpi.map((item) => (
-                                    <div key={item} className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-slate-200">
-                                        {item}
+                        </div>
+                        <div className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm text-slate-300">
+                            {activeSection === "admin"
+                                ? adminModules.find((module) => module.key === activeAdminSection)?.title ?? "Vue générale"
+                                : "Analyse des indicateurs"}
+                        </div>
+                    </div>
+
+                    <div className="mt-6">
+                        {activeSection === "admin" ? (
+                            <>
+                                {activeAdminSection === "overview" ? (
+                                    <>
+                                        <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+                                            {kpis.map((kpi) => (
+                                                <article
+                                                    key={kpi.label}
+                                                    className="rounded-[1.5rem] border border-white/10 bg-slate-950/35 p-5 shadow-lg shadow-slate-950/20"
+                                                >
+                                                    <p className="text-sm text-slate-400">{kpi.label}</p>
+                                                    <div className="mt-3 flex items-end justify-between gap-3">
+                                                        <strong className="text-3xl font-semibold text-white">{kpi.value}</strong>
+                                                        <span className="rounded-full bg-white/5 px-3 py-1 text-xs font-medium text-emerald-200">
+                                                            {kpi.delta}
+                                                        </span>
+                                                    </div>
+                                                </article>
+                                            ))}
+                                        </section>
+
+                                        <div className="mt-6 grid gap-6 xl:grid-cols-[1.15fr_0.85fr]">
+                                            <article className="rounded-[2rem] border border-white/10 bg-slate-950/35 p-5 shadow-xl shadow-slate-950/25 sm:p-6">
+                                                <p className="text-sm text-slate-400">Point d’entrée</p>
+                                                <h3 className="mt-1 text-2xl font-semibold text-white">Choisis un module dans la barre de gauche</h3>
+                                                <p className="mt-3 text-sm leading-6 text-slate-300">
+                                                    Chaque bouton ouvre son interface métier dédiée: clients, produits, fournisseurs, ventes, achats, stock, services, utilisateurs et paramètres.
+                                                </p>
+                                            </article>
+
+                                            <article className="rounded-[2rem] border border-white/10 bg-slate-950/35 p-5 shadow-xl shadow-slate-950/25 sm:p-6">
+                                                <p className="text-sm text-slate-400">Raccourci</p>
+                                                <h3 className="mt-1 text-2xl font-semibold text-white">Module actif</h3>
+                                                <button
+                                                    onClick={() => setActiveAdminSection("clients")}
+                                                    className="mt-5 rounded-2xl border border-cyan-300/20 bg-cyan-300/10 px-4 py-3 text-sm font-semibold text-cyan-100 transition hover:bg-cyan-300/20"
+                                                >
+                                                    Ouvrir Clients
+                                                </button>
+                                            </article>
+                                        </div>
+                                    </>
+                                ) : (
+                                    renderAdminWorkspace()
+                                )}
+                            </>
+                        ) : (
+                            <>
+                                <section className="grid gap-6 xl:grid-cols-[1.05fr_0.95fr]">
+                                    <article className="rounded-[2rem] border border-white/10 bg-slate-950/35 p-5 shadow-xl shadow-slate-950/25 sm:p-6">
+                                        <div className="flex items-center justify-between gap-4">
+                                            <div>
+                                                <p className="text-sm text-slate-400">Tableau de bord</p>
+                                                <h3 className="mt-1 text-2xl font-semibold text-white">Indicateurs clés de performance</h3>
+                                            </div>
+                                            <span className="rounded-full bg-rose-300/10 px-3 py-1 text-xs text-rose-200">KPI</span>
+                                        </div>
+
+                                        <div className="mt-5 grid gap-4 md:grid-cols-2">
+                                            {kpis.map((kpi) => (
+                                                <div key={kpi.label} className="rounded-3xl border border-white/10 bg-slate-950/40 p-5">
+                                                    <p className="text-sm text-slate-400">{kpi.label}</p>
+                                                    <div className="mt-3 flex items-end justify-between gap-3">
+                                                        <strong className="text-3xl font-semibold text-white">{kpi.value}</strong>
+                                                        <span className="rounded-full bg-white/5 px-3 py-1 text-xs text-emerald-200">{kpi.delta}</span>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </article>
+
+                                    <article className="rounded-[2rem] border border-white/10 bg-slate-950/35 p-5 shadow-xl shadow-slate-950/25 sm:p-6">
+                                        <p className="text-sm text-slate-400">Situation de la librairie</p>
+                                        <h3 className="mt-1 text-2xl font-semibold text-white">Alertes et points de contrôle</h3>
+                                        <div className="mt-5 grid gap-3">
+                                            {analyticsHighlights.map((item) => (
+                                                <div key={item} className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-slate-200">
+                                                    {item}
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </article>
+                                </section>
+
+                                <section className="mt-6 grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
+                                    <article className="rounded-[2rem] border border-white/10 bg-slate-950/35 p-5 shadow-xl shadow-slate-950/25 sm:p-6">
+                                        <div className="flex items-center justify-between gap-4">
+                                            <div>
+                                                <p className="text-sm text-slate-400">Graphique mensuel</p>
+                                                <h3 className="mt-1 text-2xl font-semibold text-white">Évolution du chiffre d’affaires</h3>
+                                            </div>
+                                            <span className="rounded-full bg-cyan-300/10 px-3 py-1 text-xs text-cyan-200">Analyse</span>
+                                        </div>
+                                        <div className="mt-6 flex h-72 items-end gap-3 rounded-[1.5rem] border border-white/10 bg-slate-950/35 p-4">
+                                            {monthlyChart.map((item) => (
+                                                <div key={item.month} className="flex flex-1 flex-col items-center gap-2">
+                                                    <div className="flex w-full items-end justify-center">
+                                                        <div
+                                                            className="w-full max-w-14 rounded-t-2xl bg-gradient-to-t from-amber-400 via-cyan-400 to-emerald-300 shadow-lg shadow-cyan-500/20"
+                                                            style={{ height: `${item.value * 2}px` }}
+                                                        />
+                                                    </div>
+                                                    <span className="text-xs text-slate-400">{item.month}</span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </article>
+
+                                    <article className="rounded-[2rem] border border-white/10 bg-slate-950/35 p-5 shadow-xl shadow-slate-950/25 sm:p-6">
+                                        <p className="text-sm text-slate-400">Top produits</p>
+                                        <h3 className="mt-1 text-2xl font-semibold text-white">Produits les plus vendus</h3>
+                                        <div className="mt-6 space-y-4">
+                                            {topProducts.map((product) => (
+                                                <div key={product.name} className="space-y-2 rounded-2xl border border-white/10 bg-slate-950/40 p-4">
+                                                    <div className="flex items-center justify-between gap-4 text-sm">
+                                                        <span className="text-slate-200">{product.name}</span>
+                                                        <span className="text-slate-400">{product.value}%</span>
+                                                    </div>
+                                                    <div className="h-3 rounded-full bg-white/5">
+                                                        <div
+                                                            className="h-3 rounded-full bg-gradient-to-r from-amber-400 via-cyan-400 to-emerald-300"
+                                                            style={{ width: `${product.value}%` }}
+                                                        />
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </article>
+                                </section>
+
+                                <section className="mt-6 rounded-[2rem] border border-white/10 bg-slate-950/35 p-5 shadow-xl shadow-slate-950/25 sm:p-6">
+                                    <p className="text-sm text-slate-400">Pourquoi les KPI ?</p>
+                                    <h3 className="mt-1 text-2xl font-semibold text-white">Les KPI donnent une lecture immédiate de la librairie</h3>
+                                    <p className="mt-3 max-w-4xl text-sm leading-6 text-slate-300">
+                                        Les indicateurs clés de performance servent à piloter l’activité en temps réel. Ils permettent de repérer les ventes, les ruptures, les produits performants et les zones qui nécessitent une action.
+                                    </p>
+                                    <div className="mt-5 grid gap-3 md:grid-cols-3">
+                                        {whyKpi.map((item) => (
+                                            <div key={item} className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-slate-200">
+                                                {item}
+                                            </div>
+                                        ))}
                                     </div>
-                                ))}
-                            </div>
-                        </section>
-                    </>
-                )}
+                                </section>
+                            </>
+                        )}
+                    </div>
+                </section>
             </div>
         </main>
     );
