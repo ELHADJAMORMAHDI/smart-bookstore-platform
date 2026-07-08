@@ -302,7 +302,7 @@ export default function Home() {
                         <span className="rounded-full bg-cyan-300/10 px-3 py-1 text-xs text-cyan-200">Support</span>
                     </div>
 
-                    <div className="mt-5 grid gap-3">
+                    <div className="mt-5 grid gap-3 sm:grid-cols-3">
                         {customerServices.map((service) => {
                             const isActive = activeCustomerService === service.key;
 
@@ -310,13 +310,13 @@ export default function Home() {
                                 <button
                                     key={service.key}
                                     onClick={() => setActiveCustomerService(service.key)}
-                                    className={`rounded-2xl border px-4 py-4 text-left transition ${isActive
+                                    className={`rounded-[1.5rem] border p-5 text-left transition hover:-translate-y-1 hover:border-white/20 ${isActive
                                         ? "border-cyan-300/30 bg-cyan-400 text-slate-950"
-                                        : "border-white/10 bg-white/5 text-slate-200 hover:bg-white/10"
+                                        : "border-white/10 bg-slate-950/35 text-slate-200"
                                         }`}
                                 >
                                     <div className="text-sm font-semibold">{service.title}</div>
-                                    <div className={`mt-1 text-xs leading-5 ${isActive ? "text-slate-950/70" : "text-slate-400"}`}>
+                                    <div className={`mt-2 text-xs leading-5 ${isActive ? "text-slate-950/70" : "text-slate-400"}`}>
                                         {service.description}
                                     </div>
                                 </button>
@@ -324,7 +324,7 @@ export default function Home() {
                         })}
                     </div>
 
-                    <div className="mt-5 grid gap-3">
+                    <div className="mt-6 grid gap-3">
                         {(
                             activeCustomerService === "schoolRegistration"
                                 ? ["Nom du client", "Téléphone", "Établissement", "Niveau", "Classe", "Année scolaire", "Montant"]
