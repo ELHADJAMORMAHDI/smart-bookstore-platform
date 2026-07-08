@@ -292,17 +292,15 @@ export default function Home() {
         const selectedService = customerServices.find((service) => service.key === activeCustomerService) ?? customerServices[0];
 
         return (
-            <section className="grid gap-6 xl:grid-cols-[0.95fr_1.05fr]">
+            <section className="grid gap-6 xl:grid-cols-[0.34fr_0.66fr]">
                 <article className="rounded-[2rem] border border-white/10 bg-[var(--surface)] p-5 shadow-xl shadow-slate-950/25 sm:p-6">
-                    <div className="flex items-center justify-between gap-4">
-                        <div>
-                            <p className="text-sm text-slate-400">Service clientèle</p>
-                            <h3 className="mt-1 text-2xl font-semibold text-white">{selectedService.title}</h3>
-                        </div>
-                        <span className="rounded-full bg-cyan-300/10 px-3 py-1 text-xs text-cyan-200">Support</span>
-                    </div>
+                    <p className="text-sm text-slate-400">Service clientèle</p>
+                    <h3 className="mt-1 text-2xl font-semibold text-white">Modules disponibles</h3>
+                    <p className="mt-3 text-sm leading-6 text-slate-300">
+                        Choisissez le type d&apos;opération à traiter, puis complétez le dossier dans le panneau de droite.
+                    </p>
 
-                    <div className="mt-5 grid gap-3 sm:grid-cols-3">
+                    <div className="mt-5 grid gap-3">
                         {customerServices.map((service) => {
                             const isActive = activeCustomerService === service.key;
 
@@ -323,62 +321,74 @@ export default function Home() {
                             );
                         })}
                     </div>
+                </article>
 
-                    <div className="mt-6 grid gap-3">
-                        {(
-                            activeCustomerService === "schoolRegistration"
-                                ? ["Nom du client", "Téléphone", "Établissement", "Niveau", "Classe", "Année scolaire", "Montant"]
-                                : activeCustomerService === "universityRegistration"
-                                    ? ["Nom du client", "Téléphone", "Université", "Faculté", "Spécialité", "Année universitaire", "Montant"]
-                                    : ["Nom du client", "Téléphone", "Compagnie", "Ligne", "Date début", "Date fin", "Montant"]
-                        ).map((field) => (
-                            <label key={field} className="grid gap-2 text-sm text-slate-300">
-                                <span>{field}</span>
-                                <input
-                                    type="text"
+                <div className="grid gap-6">
+                    <article className="rounded-[2rem] border border-white/10 bg-[var(--surface)] p-5 shadow-xl shadow-slate-950/25 sm:p-6">
+                        <div className="flex items-center justify-between gap-4">
+                            <div>
+                                <p className="text-sm text-slate-400">Interface active</p>
+                                <h3 className="mt-1 text-2xl font-semibold text-white">{selectedService.title}</h3>
+                            </div>
+                            <span className="rounded-full bg-cyan-300/10 px-3 py-1 text-xs text-cyan-200">Support</span>
+                        </div>
+
+                        <div className="mt-6 grid gap-3">
+                            {(
+                                activeCustomerService === "schoolRegistration"
+                                    ? ["Nom du client", "Téléphone", "Établissement", "Niveau", "Classe", "Année scolaire", "Montant"]
+                                    : activeCustomerService === "universityRegistration"
+                                        ? ["Nom du client", "Téléphone", "Université", "Faculté", "Spécialité", "Année universitaire", "Montant"]
+                                        : ["Nom du client", "Téléphone", "Compagnie", "Ligne", "Date début", "Date fin", "Montant"]
+                            ).map((field) => (
+                                <label key={field} className="grid gap-2 text-sm text-slate-300">
+                                    <span>{field}</span>
+                                    <input
+                                        type="text"
+                                        className="rounded-2xl border border-white/10 bg-slate-950/40 px-4 py-3 text-slate-100 outline-none placeholder:text-slate-500 focus:border-cyan-300/50"
+                                        placeholder={`Saisir ${field.toLowerCase()}`}
+                                    />
+                                </label>
+                            ))}
+                            <label className="grid gap-2 text-sm text-slate-300">
+                                <span>Observations</span>
+                                <textarea
+                                    rows={5}
                                     className="rounded-2xl border border-white/10 bg-slate-950/40 px-4 py-3 text-slate-100 outline-none placeholder:text-slate-500 focus:border-cyan-300/50"
-                                    placeholder={`Saisir ${field.toLowerCase()}`}
+                                    placeholder="Ajouter une note ou une précision"
                                 />
                             </label>
-                        ))}
-                        <label className="grid gap-2 text-sm text-slate-300">
-                            <span>Observations</span>
-                            <textarea
-                                rows={5}
-                                className="rounded-2xl border border-white/10 bg-slate-950/40 px-4 py-3 text-slate-100 outline-none placeholder:text-slate-500 focus:border-cyan-300/50"
-                                placeholder="Ajouter une note ou une précision"
-                            />
-                        </label>
 
-                        <button className="rounded-2xl bg-cyan-400 px-4 py-3 font-semibold text-slate-950 transition hover:bg-cyan-300">
-                            Enregistrer {selectedService.title.toLowerCase()}
-                        </button>
-                    </div>
-                </article>
+                            <button className="rounded-2xl bg-cyan-400 px-4 py-3 font-semibold text-slate-950 transition hover:bg-cyan-300">
+                                Enregistrer {selectedService.title.toLowerCase()}
+                            </button>
+                        </div>
+                    </article>
 
-                <article className="rounded-[2rem] border border-white/10 bg-[var(--surface)] p-5 shadow-xl shadow-slate-950/25 sm:p-6">
-                    <p className="text-sm text-slate-400">Demandes en cours</p>
-                    <h3 className="mt-1 text-2xl font-semibold text-white">Suivi des dossiers</h3>
-                    <div className="mt-5 space-y-4">
-                        {[
-                            ["Dossier 001", "Inscription scolaire", "En cours"],
-                            ["Dossier 002", "Inscription universitaire", "Résolu"],
-                            ["Dossier 003", "Abonnement scolaire", "En attente"],
-                        ].map((row) => (
-                            <div key={row[0]} className="rounded-2xl border border-white/10 bg-white/5 p-4">
-                                <div className="flex items-center justify-between gap-4">
-                                    <div>
-                                        <div className="text-sm font-semibold text-white">{row[0]}</div>
-                                        <div className="mt-1 text-sm text-slate-300">{row[1]}</div>
+                    <article className="rounded-[2rem] border border-white/10 bg-[var(--surface)] p-5 shadow-xl shadow-slate-950/25 sm:p-6">
+                        <p className="text-sm text-slate-400">Demandes en cours</p>
+                        <h3 className="mt-1 text-2xl font-semibold text-white">Suivi des dossiers</h3>
+                        <div className="mt-5 space-y-4">
+                            {[
+                                ["Dossier 001", "Inscription scolaire", "En cours"],
+                                ["Dossier 002", "Inscription universitaire", "Résolu"],
+                                ["Dossier 003", "Abonnement scolaire", "En attente"],
+                            ].map((row) => (
+                                <div key={row[0]} className="rounded-2xl border border-white/10 bg-white/5 p-4">
+                                    <div className="flex items-center justify-between gap-4">
+                                        <div>
+                                            <div className="text-sm font-semibold text-white">{row[0]}</div>
+                                            <div className="mt-1 text-sm text-slate-300">{row[1]}</div>
+                                        </div>
+                                        <span className="rounded-full border border-white/10 bg-slate-950/40 px-3 py-1 text-xs text-slate-200">
+                                            {row[2]}
+                                        </span>
                                     </div>
-                                    <span className="rounded-full border border-white/10 bg-slate-950/40 px-3 py-1 text-xs text-slate-200">
-                                        {row[2]}
-                                    </span>
                                 </div>
-                            </div>
-                        ))}
-                    </div>
-                </article>
+                            ))}
+                        </div>
+                    </article>
+                </div>
             </section>
         );
     }
