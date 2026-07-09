@@ -4,7 +4,7 @@ import { FormEvent, useState } from "react";
 
 type MainSection = "admin" | "serviceClientele";
 
-type ServiceClienteleSection = "schoolRegistration" | "universityRegistration" | "schoolSubscription";
+type ServiceClienteleSection = "schoolRegistration" | "universityRegistration" | "schoolSubscription" | "clientOrder";
 
 type AdminSection =
     | "overview"
@@ -32,6 +32,12 @@ type ModuleConfig = {
     fields: string[];
     headers: string[];
     rows: string[][];
+};
+
+type ClientOrderLine = {
+    article: string;
+    quantity: string;
+    unitPrice: string;
 };
 
 const mainSections: Array<{ key: MainSection; label: string; description: string }> = [
@@ -127,6 +133,15 @@ const topProducts = [
     { name: "Compas", value: 47 },
 ];
 
+const articleCatalog = [
+    { name: "Cahier 96 pages", price: 8.5 },
+    { name: "Stylo bleu", price: 2.2 },
+    { name: "Livre Math 3e", price: 72 },
+    { name: "Compas", price: 12.5 },
+    { name: "Sac scolaire", price: 145 },
+    { name: "Feuilles copie", price: 18 },
+];
+
 const whyKpi = [
     "Voir rapidement la santé de l’activité",
     "Détecter une baisse des ventes ou du stock",
@@ -149,6 +164,11 @@ const customerServices = [
         key: "schoolSubscription" as const,
         title: "Abonnement scolaire",
         description: "Suivre l’abonnement scolaire au transport et sa période de validité.",
+    },
+    {
+        key: "clientOrder" as const,
+        title: "Commande client",
+        description: "Préparer la commande d’achat et calculer automatiquement le montant à payer.",
     },
 ];
 
@@ -268,8 +288,26 @@ export default function Home() {
     const [activeSection, setActiveSection] = useState<MainSection>("admin");
     const [activeAdminSection, setActiveAdminSection] = useState<AdminSection>("overview");
     const [activeCustomerService, setActiveCustomerService] = useState<ServiceClienteleSection>("schoolRegistration");
+    const [clientOrderArticle, setClientOrderArticle] = useState(articleCatalog[0].name);
+    const [clientOrderQuantity, setClientOrderQuantity] = useState("1");
+    const [clientOrderUnitPrice, setClientOrderUnitPrice] = useState(articleCatalog[0].price.toString());
+    const [clientOrderDiscount, setClientOrderDiscount] = useState("0");
+    const [clientOrderLines, setClientOrderLines] = useState<ClientOrderLine[]>([]);
     const [username, setUsername] = useState("admin");
     const [password, setPassword] = useState("admin123");
+
+    const orderQuantity = Number.parseFloat(clientOrderQuantity) || 0;
+    const orderUnitPrice = Number.parseFloat(clientOrderUnitPrice) || 0;
+    const orderDiscount = Number.parseFloat(clientOrderDiscount) || 0;
+    const orderSubtotal = orderQuantity * orderUnitPrice;
+    const orderLinesTotal = clientOrderLines.reduce((sum, line) => {
+        const lineQuantity = Number.parseFloat(line.quantity) || 0;
+        const lineUnitPrice = Number.parseFloat(line.unitPrice) || 0;
+
+        return sum + lineQuantity * lineUnitPrice;
+    }, 0);
+    const orderDraftTotal = Math.max(orderSubtotal - orderDiscount, 0);
+    const orderGrandTotal = orderLinesTotal + orderDraftTotal;
 
     function handleLogin(event: FormEvent<HTMLFormElement>) {
         event.preventDefault();
@@ -286,61 +324,149 @@ export default function Home() {
         setActiveSection("admin");
         setActiveAdminSection("overview");
         setActiveCustomerService("schoolRegistration");
+        setClientOrderArticle(articleCatalog[0].name);
+        setClientOrderQuantity("1");
+        setClientOrderUnitPrice(articleCatalog[0].price.toString());
+        setClientOrderDiscount("0");
+        setClientOrderLines([]);
+    }
+
+    function handleClientOrderArticleChange(value: string) {
+        const selectedArticle = articleCatalog.find((article) => article.name === value) ?? articleCatalog[0];
+
+        setClientOrderArticle(selectedArticle.name);
+        setClientOrderUnitPrice(selectedArticle.price.toString());
+    }
+
+    function addClientOrderLine() {
+        if (!clientOrderArticle.trim()) {
+            return;
+        }
+
+        setClientOrderLines((currentLines) => [
+            ...currentLines,
+            {
+                article: clientOrderArticle,
+                quantity: clientOrderQuantity || "1",
+                unitPrice: clientOrderUnitPrice || "0",
+            },
+        ]);
+
+        setClientOrderQuantity("1");
+        setClientOrderArticle(articleCatalog[0].name);
+        setClientOrderUnitPrice(articleCatalog[0].price.toString());
+        setClientOrderDiscount("0");
     }
 
     function renderCustomerServiceWorkspace() {
         const selectedService = customerServices.find((service) => service.key === activeCustomerService) ?? customerServices[0];
+        const isClientOrder = activeCustomerService === "clientOrder";
 
         return (
-            <section className="grid gap-6 xl:grid-cols-[0.34fr_0.66fr]">
+            <section className="grid gap-6">
                 <article className="rounded-[2rem] border border-white/10 bg-[var(--surface)] p-5 shadow-xl shadow-slate-950/25 sm:p-6">
-                    <p className="text-sm text-slate-400">Service clientèle</p>
-                    <h3 className="mt-1 text-2xl font-semibold text-white">Modules disponibles</h3>
-                    <p className="mt-3 text-sm leading-6 text-slate-300">
-                        Choisissez le type d&apos;opération à traiter, puis complétez le dossier dans le panneau de droite.
-                    </p>
+                    <div className="flex items-center justify-between gap-4">
+                        <div>
+                            <p className="text-sm text-slate-400">Interface active</p>
+                            <h3 className="mt-1 text-2xl font-semibold text-white">{selectedService.title}</h3>
+                        </div>
+                        <span className="rounded-full bg-cyan-300/10 px-3 py-1 text-xs text-cyan-200">Support</span>
+                    </div>
 
-                    <div className="mt-5 grid gap-3">
-                        {customerServices.map((service) => {
-                            const isActive = activeCustomerService === service.key;
+                    <div className="mt-6 grid gap-3">
+                        {(
+                            activeCustomerService === "schoolRegistration"
+                                ? ["Nom du client", "Téléphone", "Établissement", "Niveau", "Classe", "Année scolaire", "Montant"]
+                                : activeCustomerService === "universityRegistration"
+                                    ? ["Nom du client", "Téléphone", "Université", "Faculté", "Spécialité", "Année universitaire", "Montant"]
+                                    : isClientOrder
+                                        ? ["Nom du client", "Article demandé", "Quantité", "Prix unitaire", "Remise", "Montant à payer"]
+                                        : ["Nom du client", "Téléphone", "Compagnie", "Ligne", "Date début", "Date fin", "Montant"]
+                        ).map((field) => {
+                            if (isClientOrder) {
+                                if (field === "Article demandé") {
+                                    return (
+                                        <label key={field} className="grid gap-2 text-sm text-slate-300">
+                                            <span>{field}</span>
+                                            <select
+                                                value={clientOrderArticle}
+                                                onChange={(event) => handleClientOrderArticleChange(event.target.value)}
+                                                className="rounded-2xl border border-white/10 bg-slate-950/40 px-4 py-3 text-slate-100 outline-none focus:border-cyan-300/50"
+                                            >
+                                                {articleCatalog.map((article) => (
+                                                    <option key={article.name} value={article.name}>
+                                                        {article.name} - {new Intl.NumberFormat("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(article.price)} MAD
+                                                    </option>
+                                                ))}
+                                            </select>
+                                        </label>
+                                    );
+                                }
+
+                                if (field === "Quantité") {
+                                    return (
+                                        <label key={field} className="grid gap-2 text-sm text-slate-300">
+                                            <span>{field}</span>
+                                            <input
+                                                type="number"
+                                                min="0"
+                                                step="1"
+                                                value={clientOrderQuantity}
+                                                onChange={(event) => setClientOrderQuantity(event.target.value)}
+                                                className="rounded-2xl border border-white/10 bg-slate-950/40 px-4 py-3 text-slate-100 outline-none placeholder:text-slate-500 focus:border-cyan-300/50"
+                                                placeholder="Saisir la quantité"
+                                            />
+                                        </label>
+                                    );
+                                }
+
+                                if (field === "Prix unitaire") {
+                                    return (
+                                        <label key={field} className="grid gap-2 text-sm text-slate-300">
+                                            <span>{field}</span>
+                                            <input
+                                                type="number"
+                                                min="0"
+                                                step="0.01"
+                                                value={clientOrderUnitPrice}
+                                                onChange={(event) => setClientOrderUnitPrice(event.target.value)}
+                                                className="rounded-2xl border border-white/10 bg-slate-950/40 px-4 py-3 text-slate-100 outline-none placeholder:text-slate-500 focus:border-cyan-300/50"
+                                                placeholder="Saisir le prix unitaire"
+                                            />
+                                        </label>
+                                    );
+                                }
+
+                                if (field === "Remise") {
+                                    return (
+                                        <label key={field} className="grid gap-2 text-sm text-slate-300">
+                                            <span>{field}</span>
+                                            <input
+                                                type="number"
+                                                min="0"
+                                                step="0.01"
+                                                value={clientOrderDiscount}
+                                                onChange={(event) => setClientOrderDiscount(event.target.value)}
+                                                className="rounded-2xl border border-white/10 bg-slate-950/40 px-4 py-3 text-slate-100 outline-none placeholder:text-slate-500 focus:border-cyan-300/50"
+                                                placeholder="Saisir la remise"
+                                            />
+                                        </label>
+                                    );
+                                }
+
+                                if (field === "Montant à payer") {
+                                    return (
+                                        <div key={field} className="grid gap-2 text-sm text-slate-300">
+                                            <span>{field}</span>
+                                            <div className="rounded-2xl border border-emerald-300/20 bg-emerald-300/10 px-4 py-3 text-2xl font-semibold text-emerald-100">
+                                                {new Intl.NumberFormat("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(orderGrandTotal)} MAD
+                                            </div>
+                                        </div>
+                                    );
+                                }
+                            }
 
                             return (
-                                <button
-                                    key={service.key}
-                                    onClick={() => setActiveCustomerService(service.key)}
-                                    className={`rounded-[1.5rem] border p-5 text-left transition hover:-translate-y-1 hover:border-white/20 ${isActive
-                                        ? "border-cyan-300/30 bg-cyan-400 text-slate-950"
-                                        : "border-white/10 bg-slate-950/35 text-slate-200"
-                                        }`}
-                                >
-                                    <div className="text-sm font-semibold">{service.title}</div>
-                                    <div className={`mt-2 text-xs leading-5 ${isActive ? "text-slate-950/70" : "text-slate-400"}`}>
-                                        {service.description}
-                                    </div>
-                                </button>
-                            );
-                        })}
-                    </div>
-                </article>
-
-                <div className="grid gap-6">
-                    <article className="rounded-[2rem] border border-white/10 bg-[var(--surface)] p-5 shadow-xl shadow-slate-950/25 sm:p-6">
-                        <div className="flex items-center justify-between gap-4">
-                            <div>
-                                <p className="text-sm text-slate-400">Interface active</p>
-                                <h3 className="mt-1 text-2xl font-semibold text-white">{selectedService.title}</h3>
-                            </div>
-                            <span className="rounded-full bg-cyan-300/10 px-3 py-1 text-xs text-cyan-200">Support</span>
-                        </div>
-
-                        <div className="mt-6 grid gap-3">
-                            {(
-                                activeCustomerService === "schoolRegistration"
-                                    ? ["Nom du client", "Téléphone", "Établissement", "Niveau", "Classe", "Année scolaire", "Montant"]
-                                    : activeCustomerService === "universityRegistration"
-                                        ? ["Nom du client", "Téléphone", "Université", "Faculté", "Spécialité", "Année universitaire", "Montant"]
-                                        : ["Nom du client", "Téléphone", "Compagnie", "Ligne", "Date début", "Date fin", "Montant"]
-                            ).map((field) => (
                                 <label key={field} className="grid gap-2 text-sm text-slate-300">
                                     <span>{field}</span>
                                     <input
@@ -349,46 +475,98 @@ export default function Home() {
                                         placeholder={`Saisir ${field.toLowerCase()}`}
                                     />
                                 </label>
-                            ))}
-                            <label className="grid gap-2 text-sm text-slate-300">
-                                <span>Observations</span>
-                                <textarea
-                                    rows={5}
-                                    className="rounded-2xl border border-white/10 bg-slate-950/40 px-4 py-3 text-slate-100 outline-none placeholder:text-slate-500 focus:border-cyan-300/50"
-                                    placeholder="Ajouter une note ou une précision"
-                                />
-                            </label>
+                            );
+                        })}
+                        <label className="grid gap-2 text-sm text-slate-300">
+                            <span>Observations</span>
+                            <textarea
+                                rows={5}
+                                className="rounded-2xl border border-white/10 bg-slate-950/40 px-4 py-3 text-slate-100 outline-none placeholder:text-slate-500 focus:border-cyan-300/50"
+                                placeholder="Ajouter une note ou une précision"
+                            />
+                        </label>
 
-                            <button className="rounded-2xl bg-cyan-400 px-4 py-3 font-semibold text-slate-950 transition hover:bg-cyan-300">
-                                Enregistrer {selectedService.title.toLowerCase()}
+                        {isClientOrder && (
+                            <button
+                                type="button"
+                                onClick={addClientOrderLine}
+                                className="rounded-2xl border border-cyan-300/20 bg-cyan-300/10 px-4 py-3 font-semibold text-cyan-100 transition hover:bg-cyan-300/20"
+                            >
+                                Ajouter l’article à la commande
                             </button>
-                        </div>
-                    </article>
+                        )}
 
-                    <article className="rounded-[2rem] border border-white/10 bg-[var(--surface)] p-5 shadow-xl shadow-slate-950/25 sm:p-6">
-                        <p className="text-sm text-slate-400">Demandes en cours</p>
-                        <h3 className="mt-1 text-2xl font-semibold text-white">Suivi des dossiers</h3>
-                        <div className="mt-5 space-y-4">
-                            {[
-                                ["Dossier 001", "Inscription scolaire", "En cours"],
-                                ["Dossier 002", "Inscription universitaire", "Résolu"],
-                                ["Dossier 003", "Abonnement scolaire", "En attente"],
-                            ].map((row) => (
-                                <div key={row[0]} className="rounded-2xl border border-white/10 bg-white/5 p-4">
-                                    <div className="flex items-center justify-between gap-4">
-                                        <div>
-                                            <div className="text-sm font-semibold text-white">{row[0]}</div>
-                                            <div className="mt-1 text-sm text-slate-300">{row[1]}</div>
-                                        </div>
-                                        <span className="rounded-full border border-white/10 bg-slate-950/40 px-3 py-1 text-xs text-slate-200">
-                                            {row[2]}
-                                        </span>
-                                    </div>
+                        <button className="rounded-2xl bg-cyan-400 px-4 py-3 font-semibold text-slate-950 transition hover:bg-cyan-300">
+                            {isClientOrder ? "Calculer et enregistrer la commande" : `Enregistrer ${selectedService.title.toLowerCase()}`}
+                        </button>
+
+                        {isClientOrder && clientOrderLines.length > 0 && (
+                            <div className="mt-2 rounded-[1.5rem] border border-white/10 bg-slate-950/35 p-4">
+                                <div className="flex items-center justify-between gap-4">
+                                    <h4 className="text-sm font-semibold text-white">Articles ajoutés</h4>
+                                    <span className="text-xs text-slate-400">{clientOrderLines.length} ligne(s)</span>
                                 </div>
-                            ))}
-                        </div>
-                    </article>
-                </div>
+                                <div className="mt-4 space-y-3">
+                                    {clientOrderLines.map((line, index) => {
+                                        const lineQuantity = Number.parseFloat(line.quantity) || 0;
+                                        const lineUnitPrice = Number.parseFloat(line.unitPrice) || 0;
+                                        const lineTotal = lineQuantity * lineUnitPrice;
+
+                                        return (
+                                            <div key={`${line.article}-${index}`} className="rounded-2xl border border-white/10 bg-white/5 p-4">
+                                                <div className="flex items-center justify-between gap-4 text-sm text-slate-200">
+                                                    <div>
+                                                        <div className="font-semibold text-white">{line.article}</div>
+                                                        <div className="mt-1 text-slate-400">
+                                                            Qté: {line.quantity} · PU: {new Intl.NumberFormat("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(line.unitPrice ? lineUnitPrice : 0)} MAD
+                                                        </div>
+                                                    </div>
+                                                    <div className="text-right">
+                                                        <div className="font-semibold text-emerald-200">
+                                                            {new Intl.NumberFormat("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(lineTotal)} MAD
+                                                        </div>
+                                                        <div className="mt-1 text-xs text-slate-400">Total ligne</div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+
+                                <div className="mt-4 flex items-center justify-between gap-4 rounded-2xl border border-emerald-300/20 bg-emerald-300/10 px-4 py-3">
+                                    <span className="text-sm font-semibold text-emerald-100">Total général à payer</span>
+                                    <span className="text-xl font-semibold text-emerald-100">
+                                        {new Intl.NumberFormat("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(orderGrandTotal)} MAD
+                                    </span>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                </article>
+
+                <article className="rounded-[2rem] border border-white/10 bg-[var(--surface)] p-5 shadow-xl shadow-slate-950/25 sm:p-6">
+                    <p className="text-sm text-slate-400">Demandes en cours</p>
+                    <h3 className="mt-1 text-2xl font-semibold text-white">Suivi des dossiers</h3>
+                    <div className="mt-5 space-y-4">
+                        {[
+                            ["Dossier 001", "Inscription scolaire", "En cours"],
+                            ["Dossier 002", "Inscription universitaire", "Résolu"],
+                            ["Dossier 003", "Abonnement scolaire", "En attente"],
+                        ].map((row) => (
+                            <div key={row[0]} className="rounded-2xl border border-white/10 bg-white/5 p-4">
+                                <div className="flex items-center justify-between gap-4">
+                                    <div>
+                                        <div className="text-sm font-semibold text-white">{row[0]}</div>
+                                        <div className="mt-1 text-sm text-slate-300">{row[1]}</div>
+                                    </div>
+                                    <span className="rounded-full border border-white/10 bg-slate-950/40 px-3 py-1 text-xs text-slate-200">
+                                        {row[2]}
+                                    </span>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </article>
             </section>
         );
     }
@@ -627,62 +805,93 @@ export default function Home() {
                     </div>
 
                     <div className="mt-4 rounded-[1.5rem] border border-white/10 bg-slate-950/30 p-3">
-                        <p className="px-2 text-xs font-semibold uppercase tracking-[0.25em] text-slate-500">Modules</p>
+                        <p className="px-2 text-xs font-semibold uppercase tracking-[0.25em] text-slate-500">Sections</p>
                         <div className="mt-3 flex flex-col gap-2">
                             {mainSections.map((section) => {
                                 const isActive = activeSection === section.key;
 
                                 return (
-                                    <button
-                                        key={section.key}
-                                        onClick={() => setActiveSection(section.key)}
-                                        className={`rounded-2xl px-4 py-3 text-left transition ${isActive
-                                            ? "border border-cyan-300/30 bg-cyan-400 text-slate-950"
-                                            : "border border-white/10 bg-white/5 text-slate-200 hover:bg-white/10"
-                                            }`}
-                                    >
-                                        <div className="text-sm font-semibold">{section.label}</div>
-                                        <div className={`mt-1 text-xs ${isActive ? "text-slate-950/70" : "text-slate-400"}`}>
-                                            {section.description}
-                                        </div>
-                                    </button>
-                                );
-                            })}
-                        </div>
-                    </div>
-
-                    {activeSection === "admin" && (
-                        <div className="mt-4 flex-1 rounded-[1.5rem] border border-white/10 bg-slate-950/30 p-3">
-                            <p className="px-2 text-xs font-semibold uppercase tracking-[0.25em] text-slate-500">Administration</p>
-                            <div className="mt-3 flex flex-col gap-2">
-                                <button
-                                    onClick={() => setActiveAdminSection("overview")}
-                                    className={`rounded-2xl px-4 py-3 text-left transition ${activeAdminSection === "overview"
-                                        ? "border border-amber-300/30 bg-amber-400 text-slate-950"
-                                        : "border border-white/10 bg-white/5 text-slate-200 hover:bg-white/10"
-                                        }`}
-                                >
-                                    Vue générale
-                                </button>
-                                {adminModules.map((module) => {
-                                    const isActive = activeAdminSection === module.key;
-
-                                    return (
+                                    <div key={section.key} className="grid gap-2">
                                         <button
-                                            key={module.key}
-                                            onClick={() => setActiveAdminSection(module.key)}
+                                            onClick={() => setActiveSection(section.key)}
                                             className={`rounded-2xl px-4 py-3 text-left transition ${isActive
                                                 ? "border border-cyan-300/30 bg-cyan-400 text-slate-950"
                                                 : "border border-white/10 bg-white/5 text-slate-200 hover:bg-white/10"
                                                 }`}
                                         >
-                                            <div className="text-sm font-semibold">{module.title}</div>
+                                            <div className="text-sm font-semibold">{section.label}</div>
+                                            <div className={`mt-1 text-xs ${isActive ? "text-slate-950/70" : "text-slate-400"}`}>
+                                                {section.description}
+                                            </div>
                                         </button>
-                                    );
-                                })}
-                            </div>
+
+                                        {section.key === "serviceClientele" && activeSection === "serviceClientele" && (
+                                            <div className="ml-3 flex flex-col gap-2 border-l border-white/10 pl-3">
+                                                {customerServices.map((service) => {
+                                                    const isServiceActive = activeCustomerService === service.key;
+
+                                                    return (
+                                                        <button
+                                                            key={service.key}
+                                                            onClick={() => {
+                                                                setActiveSection("serviceClientele");
+                                                                setActiveCustomerService(service.key);
+                                                            }}
+                                                            className={`rounded-2xl px-4 py-3 text-left transition ${isServiceActive
+                                                                ? "border border-amber-300/30 bg-amber-400 text-slate-950"
+                                                                : "border border-white/10 bg-white/5 text-slate-200 hover:bg-white/10"
+                                                                }`}
+                                                        >
+                                                            <div className="text-sm font-semibold">{service.title}</div>
+                                                        </button>
+                                                    );
+                                                })}
+                                            </div>
+                                        )}
+                                    </div>
+                                );
+                            })}
                         </div>
-                    )}
+                    </div>
+
+                    <div className="mt-4 flex-1 space-y-4 overflow-y-auto">
+                        {activeSection === "admin" && (
+                            <div className="rounded-[1.5rem] border border-white/10 bg-slate-950/30 p-3">
+                                <p className="px-2 text-xs font-semibold uppercase tracking-[0.25em] text-slate-500">Administration</p>
+                                <div className="mt-3 flex flex-col gap-2">
+                                    <button
+                                        onClick={() => setActiveAdminSection("overview")}
+                                        className={`rounded-2xl px-4 py-3 text-left transition ${activeSection === "admin" && activeAdminSection === "overview"
+                                            ? "border border-amber-300/30 bg-amber-400 text-slate-950"
+                                            : "border border-white/10 bg-white/5 text-slate-200 hover:bg-white/10"
+                                            }`}
+                                    >
+                                        Vue générale
+                                    </button>
+                                    {adminModules.map((module) => {
+                                        const isActive = activeSection === "admin" && activeAdminSection === module.key;
+
+                                        return (
+                                            <button
+                                                key={module.key}
+                                                onClick={() => {
+                                                    setActiveSection("admin");
+                                                    setActiveAdminSection(module.key);
+                                                }}
+                                                className={`rounded-2xl px-4 py-3 text-left transition ${isActive
+                                                    ? "border border-cyan-300/30 bg-cyan-400 text-slate-950"
+                                                    : "border border-white/10 bg-white/5 text-slate-200 hover:bg-white/10"
+                                                    }`}
+                                            >
+                                                <div className="text-sm font-semibold">{module.title}</div>
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                        )}
+
+                    </div>
 
                     <button
                         onClick={handleLogout}
@@ -699,16 +908,20 @@ export default function Home() {
                                 Connexion réussie · Portail librairie
                             </div>
                             <h2 className="mt-4 text-3xl font-semibold tracking-tight text-white sm:text-4xl">
-                                {activeSection === "admin" ? "Interface d’administration" : "Interface d’analyse"}
+                                {activeSection === "admin" ? "Interface d’administration" : "Interface de service clientèle"}
                             </h2>
                             <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-300 sm:text-base">
-                                La barre latérale à gauche contient tous les boutons. Le panneau de droite affiche l’écran de travail sélectionné.
+                                Les boutons sont regroupés à gauche par section. Le panneau de droite affiche l’écran de travail sélectionné.
                             </p>
                         </div>
                         <div className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm text-slate-300">
                             {activeSection === "admin"
                                 ? adminModules.find((module) => module.key === activeAdminSection)?.title ?? "Vue générale"
-                                : "Analyse des indicateurs"}
+                                : activeCustomerService === "schoolRegistration"
+                                    ? "Inscription scolaire"
+                                    : activeCustomerService === "universityRegistration"
+                                        ? "Inscription universitaire"
+                                        : "Abonnement scolaire"}
                         </div>
                     </div>
 
