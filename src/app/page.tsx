@@ -38,6 +38,7 @@ type ClientOrderLine = {
     article: string;
     quantity: string;
     unitPrice: string;
+    discountPercent: string;
 };
 
 const mainSections: Array<{ key: MainSection; label: string; description: string }> = [
@@ -298,15 +299,20 @@ export default function Home() {
 
     const orderQuantity = Number.parseFloat(clientOrderQuantity) || 0;
     const orderUnitPrice = Number.parseFloat(clientOrderUnitPrice) || 0;
-    const orderDiscount = Number.parseFloat(clientOrderDiscount) || 0;
+    const orderDiscountPercent = Number.parseFloat(clientOrderDiscount) || 0;
     const orderSubtotal = orderQuantity * orderUnitPrice;
+    const orderDiscountAmount = orderSubtotal * (orderDiscountPercent / 100);
+    const orderDraftTotal = Math.max(orderSubtotal - orderDiscountAmount, 0);
     const orderLinesTotal = clientOrderLines.reduce((sum, line) => {
         const lineQuantity = Number.parseFloat(line.quantity) || 0;
         const lineUnitPrice = Number.parseFloat(line.unitPrice) || 0;
+        const lineDiscountPercent = Number.parseFloat(line.discountPercent) || 0;
+        const lineSubtotal = lineQuantity * lineUnitPrice;
+        const lineDiscountAmount = lineSubtotal * (lineDiscountPercent / 100);
+        const lineTotal = Math.max(lineSubtotal - lineDiscountAmount, 0);
 
-        return sum + lineQuantity * lineUnitPrice;
+        return sum + lineTotal;
     }, 0);
-    const orderDraftTotal = Math.max(orderSubtotal - orderDiscount, 0);
     const orderGrandTotal = orderLinesTotal + orderDraftTotal;
 
     function handleLogin(event: FormEvent<HTMLFormElement>) {
@@ -349,6 +355,7 @@ export default function Home() {
                 article: clientOrderArticle,
                 quantity: clientOrderQuantity || "1",
                 unitPrice: clientOrderUnitPrice || "0",
+                discountPercent: clientOrderDiscount || "0",
             },
         ]);
 
@@ -380,7 +387,7 @@ export default function Home() {
                                 : activeCustomerService === "universityRegistration"
                                     ? ["Nom du client", "Téléphone", "Université", "Faculté", "Spécialité", "Année universitaire", "Montant"]
                                     : isClientOrder
-                                        ? ["Nom du client", "Article demandé", "Quantité", "Prix unitaire", "Remise", "Montant à payer"]
+                                        ? ["Nom du client", "Article demandé", "Quantité", "Prix unitaire", "Remise (%)", "Montant de l'article"]
                                         : ["Nom du client", "Téléphone", "Compagnie", "Ligne", "Date début", "Date fin", "Montant"]
                         ).map((field) => {
                             if (isClientOrder) {
@@ -437,30 +444,33 @@ export default function Home() {
                                     );
                                 }
 
-                                if (field === "Remise") {
+                                if (field === "Remise (%)") {
                                     return (
                                         <label key={field} className="grid gap-2 text-sm text-slate-300">
                                             <span>{field}</span>
                                             <input
                                                 type="number"
                                                 min="0"
-                                                step="0.01"
+                                                max="100"
+                                                step="0.1"
                                                 value={clientOrderDiscount}
                                                 onChange={(event) => setClientOrderDiscount(event.target.value)}
                                                 className="rounded-2xl border border-white/10 bg-slate-950/40 px-4 py-3 text-slate-100 outline-none placeholder:text-slate-500 focus:border-cyan-300/50"
-                                                placeholder="Saisir la remise"
+                                                placeholder="Saisir la remise en %"
                                             />
                                         </label>
                                     );
                                 }
 
-                                if (field === "Montant à payer") {
+                                if (field === "Montant de l'article") {
                                     return (
                                         <div key={field} className="grid gap-2 text-sm text-slate-300">
                                             <span>{field}</span>
-                                            <div className="rounded-2xl border border-emerald-300/20 bg-emerald-300/10 px-4 py-3 text-2xl font-semibold text-emerald-100">
-                                                {new Intl.NumberFormat("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(orderGrandTotal)} MAD
-                                            </div>
+                                            <input
+                                                readOnly
+                                                value={`${new Intl.NumberFormat("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(orderDraftTotal)} MAD`}
+                                                className="rounded-2xl border border-emerald-300/20 bg-emerald-300/10 px-4 py-3 text-2xl font-semibold text-emerald-100 outline-none"
+                                            />
                                         </div>
                                     );
                                 }
@@ -500,6 +510,17 @@ export default function Home() {
                             {isClientOrder ? "Calculer et enregistrer la commande" : `Enregistrer ${selectedService.title.toLowerCase()}`}
                         </button>
 
+                        {isClientOrder && (
+                            <label className="grid gap-2 text-sm text-slate-300">
+                                <span>Total général à payer</span>
+                                <input
+                                    readOnly
+                                    value={`${new Intl.NumberFormat("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(orderGrandTotal)} MAD`}
+                                    className="rounded-2xl border border-cyan-300/20 bg-cyan-300/10 px-4 py-3 text-2xl font-semibold text-cyan-100 outline-none"
+                                />
+                            </label>
+                        )}
+
                         {isClientOrder && clientOrderLines.length > 0 && (
                             <div className="mt-2 rounded-[1.5rem] border border-white/10 bg-slate-950/35 p-4">
                                 <div className="flex items-center justify-between gap-4">
@@ -510,7 +531,10 @@ export default function Home() {
                                     {clientOrderLines.map((line, index) => {
                                         const lineQuantity = Number.parseFloat(line.quantity) || 0;
                                         const lineUnitPrice = Number.parseFloat(line.unitPrice) || 0;
-                                        const lineTotal = lineQuantity * lineUnitPrice;
+                                        const lineDiscountPercent = Number.parseFloat(line.discountPercent) || 0;
+                                        const lineSubtotal = lineQuantity * lineUnitPrice;
+                                        const lineDiscountAmount = lineSubtotal * (lineDiscountPercent / 100);
+                                        const lineTotal = Math.max(lineSubtotal - lineDiscountAmount, 0);
 
                                         return (
                                             <div key={`${line.article}-${index}`} className="rounded-2xl border border-white/10 bg-white/5 p-4">
@@ -518,26 +542,19 @@ export default function Home() {
                                                     <div>
                                                         <div className="font-semibold text-white">{line.article}</div>
                                                         <div className="mt-1 text-slate-400">
-                                                            Qté: {line.quantity} · PU: {new Intl.NumberFormat("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(line.unitPrice ? lineUnitPrice : 0)} MAD
+                                                            Qté: {line.quantity} · PU: {new Intl.NumberFormat("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(lineUnitPrice)} MAD · Remise: {new Intl.NumberFormat("fr-FR", { minimumFractionDigits: 1, maximumFractionDigits: 1 }).format(lineDiscountPercent)} %
                                                         </div>
                                                     </div>
                                                     <div className="text-right">
                                                         <div className="font-semibold text-emerald-200">
                                                             {new Intl.NumberFormat("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(lineTotal)} MAD
                                                         </div>
-                                                        <div className="mt-1 text-xs text-slate-400">Total ligne</div>
+                                                        <div className="mt-1 text-xs text-slate-400">Montant article</div>
                                                     </div>
                                                 </div>
                                             </div>
                                         );
                                     })}
-                                </div>
-
-                                <div className="mt-4 flex items-center justify-between gap-4 rounded-2xl border border-emerald-300/20 bg-emerald-300/10 px-4 py-3">
-                                    <span className="text-sm font-semibold text-emerald-100">Total général à payer</span>
-                                    <span className="text-xl font-semibold text-emerald-100">
-                                        {new Intl.NumberFormat("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(orderGrandTotal)} MAD
-                                    </span>
                                 </div>
                             </div>
                         )}
